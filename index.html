@@ -46,7 +46,6 @@
   .panel h2 .count { background: var(--bg-hover); color: var(--accent-dark); font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px; margin-left: auto; }
   .panel-sub { font-size: 13px; color: var(--text-secondary); margin-top: -8px; margin-bottom: 14px; line-height: 1.5; }
 
-  /* Ceiling */
   .ceiling-panel { background: linear-gradient(135deg, var(--bg-card), #FFF9F0); border: 1px solid var(--accent-light); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px 26px; margin-bottom: 20px; }
   .ceiling-h { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
   .ceiling-h h2 { font-size: 17px; font-weight: 700; }
@@ -72,7 +71,6 @@
   .scenario .breakdown { font-size: 11px; color: var(--text-secondary); margin-top: 6px; line-height: 1.5; }
   .scenario .gap { font-size: 11px; color: var(--text-light); margin-top: 6px; font-style: italic; }
 
-  /* Stale holds */
   .stale-panel { background: var(--hold-soft); border: 1px solid var(--hold); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 20px; }
   .stale-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
   .stale-h h2 { font-size: 16px; font-weight: 700; color: var(--hold); }
@@ -88,7 +86,6 @@
   .btn-mini.primary:hover { background: var(--accent-dark); }
   .btn-mini:hover { background: var(--bg-hover); }
 
-  /* Pace */
   .pace-row { display: grid; grid-template-columns: 90px 1fr auto auto; gap: 14px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
   .pace-row:last-child { border-bottom: none; }
   .pace-row.current { background: var(--bg-hover); }
@@ -103,7 +100,6 @@
   .pace-need strong { color: var(--text); }
   .pace-revenue { font-size: 13px; font-weight: 700; color: var(--accent-dark); font-variant-numeric: tabular-nums; }
 
-  /* Mix */
   .mix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: center; }
   @media (max-width: 700px) { .mix-grid { grid-template-columns: 1fr; } }
   .mix-bars { display: flex; flex-direction: column; gap: 12px; }
@@ -116,7 +112,6 @@
   .mix-summary { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; font-size: 13px; line-height: 1.6; color: var(--text-secondary); }
   .mix-summary strong { color: var(--text); }
 
-  /* Best months */
   .best-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
   .best-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; }
   .best-card.top { background: var(--gold-soft); border-color: var(--gold); }
@@ -126,7 +121,6 @@
   .best-potential { font-size: 18px; font-weight: 700; color: var(--accent-dark); margin-top: 6px; font-variant-numeric: tabular-nums; }
   .best-card.top .best-potential { color: var(--gold); }
 
-  /* Calendar */
   .cal-controls { margin-bottom: 12px; }
   .cal-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; }
   .legend-item { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); }
@@ -155,20 +149,44 @@
   .cal-day .tip { display: none; position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%); background: var(--text); color: white; font-size: 11px; padding: 6px 10px; border-radius: 6px; white-space: nowrap; z-index: 10; pointer-events: none; font-weight: 400; }
   .cal-day:hover .tip { display: block; }
 
-  /* Selection toolbar above calendar */
-  .selection-bar { background: var(--accent); color: white; border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 14px; display: none; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  /* ============ STICKY SELECTION BAR (UI Fix #1, #4, #5) ============ */
+  .selection-bar {
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    max-width: 720px;
+    background: var(--accent);
+    color: white;
+    border-radius: var(--radius-sm);
+    padding: 12px 18px;
+    box-shadow: 0 8px 32px rgba(61,46,31,0.25);
+    z-index: 50;
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    animation: slideDown 0.2s ease-out;
+  }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translate(-50%, -10px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+  }
   .selection-bar.shown { display: flex; }
   .selection-bar .info { font-size: 13px; }
   .selection-bar .info strong { font-weight: 700; }
-  .sb-btn { padding: 7px 14px; border-radius: 8px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .selection-bar .info .hint { font-size: 11px; opacity: 0.85; margin-left: 6px; }
+  .sb-btn { padding: 8px 16px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
   .sb-btn.primary { background: white; color: var(--accent-dark); }
   .sb-btn.secondary { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); }
   .sb-btn:hover { opacity: 0.9; }
 
   /* Modal */
-  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(61,46,31,0.55); backdrop-filter: blur(3px); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(61,46,31,0.55); backdrop-filter: blur(3px); z-index: 100; align-items: flex-start; justify-content: center; padding: 20px; overflow-y: auto; }
   .modal-backdrop.shown { display: flex; }
-  .modal { background: var(--bg-card); border-radius: var(--radius); box-shadow: 0 12px 48px rgba(61,46,31,0.25); max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto; }
+  .modal { background: var(--bg-card); border-radius: var(--radius); box-shadow: 0 12px 48px rgba(61,46,31,0.25); max-width: 580px; width: 100%; margin: 40px 0; }
   .modal-h { padding: 18px 22px 12px; border-bottom: 1px solid var(--border); }
   .modal-h h2 { font-size: 18px; font-weight: 700; }
   .modal-h .sub { font-size: 12px; color: var(--text-light); margin-top: 4px; }
@@ -196,7 +214,36 @@
   .audit { font-size: 11px; color: var(--text-light); margin-top: 8px; line-height: 1.5; }
   .audit strong { color: var(--text-secondary); }
 
-  /* EIM view bits (preserved) */
+  /* ============ PORTFOLIO SECTION (in modal) ============ */
+  .portfolio-section {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .portfolio-section h3 { font-size: 14px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .portfolio-section h3 .sent-badge { background: var(--green-soft); color: var(--green); font-size: 10px; padding: 2px 8px; border-radius: 999px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; }
+  .portfolio-section .ps-sub { font-size: 12px; color: var(--text-light); margin-bottom: 12px; }
+  .portfolio-presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .preset-btn { background: var(--bg); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; color: var(--text-secondary); }
+  .preset-btn:hover { background: var(--bg-hover); }
+  .preset-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .feature-cat { margin-bottom: 10px; }
+  .feature-cat-h { font-size: 10px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+  .feature-cb { display: flex; align-items: flex-start; gap: 6px; padding: 4px 0; font-size: 12px; cursor: pointer; }
+  .feature-cb input { width: 14px; height: 14px; margin-top: 2px; flex-shrink: 0; cursor: pointer; }
+  .feature-cb-label { flex: 1; }
+  .feature-cb-name { font-weight: 600; color: var(--text); }
+  .feature-cb-desc { font-size: 11px; color: var(--text-light); line-height: 1.4; }
+  .portfolio-preview { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-size: 11px; color: var(--text-secondary); max-height: 220px; overflow-y: auto; white-space: pre-wrap; line-height: 1.55; margin-top: 10px; font-family: -apple-system, sans-serif; }
+  .portfolio-preview.empty { font-style: italic; color: var(--text-light); }
+  .send-portfolio-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
+  .send-portfolio-btn { background: var(--green); color: white; border: none; padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .send-portfolio-btn:hover { background: #3d6230; }
+  .send-portfolio-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .portfolio-sent-info { font-size: 11px; color: var(--green); padding: 6px 10px; background: var(--green-soft); border-radius: 6px; flex: 1; min-width: 0; }
+  .unmark-sent { background: transparent; border: none; color: var(--text-light); font-size: 10px; text-decoration: underline dotted; cursor: pointer; padding: 0; font-family: inherit; }
+
+  /* EIM view */
   .revenue-panel { background: linear-gradient(135deg, var(--bg-card), #FFF9F0); border: 1px solid var(--accent-light); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px 24px; margin-bottom: 20px; }
   .revenue-h { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
   .revenue-h h2 { font-size: 17px; font-weight: 700; }
@@ -218,7 +265,6 @@
   .kpi-value { font-size: 30px; font-weight: 700; color: var(--accent-dark); margin: 4px 0 2px; font-variant-numeric: tabular-nums; }
   .kpi-sub { font-size: 12px; color: var(--text-secondary); }
 
-  /* Bookings table view */
   .bookings-list { display: flex; flex-direction: column; gap: 10px; }
   .booking-row { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; cursor: pointer; transition: all 0.15s; }
   .booking-row:hover { background: var(--bg-hover); }
@@ -231,6 +277,7 @@
   .br-status { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.6px; margin-left: 8px; }
   .br-status.hold { background: var(--hold-soft); color: var(--hold); }
   .br-status.locked { background: var(--locked-soft); color: var(--locked); }
+  .br-portfolio { font-size: 11px; color: var(--green); margin-left: 8px; }
 
   .tenant-section.hidden { display: none; }
   .footer { text-align: center; padding-top: 24px; margin-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-light); }
@@ -248,10 +295,22 @@
     .container { padding: 14px 14px 32px; }
     .kpi-grid { grid-template-columns: 1fr 1fr; }
     .revenue-grid { grid-template-columns: 1fr; }
+    .selection-bar { padding: 10px 14px; }
+    .sb-btn { padding: 6px 12px; font-size: 12px; }
   }
 </style>
 </head>
 <body>
+
+<!-- ============ STICKY SELECTION BAR (always visible while selecting) ============ -->
+<div class="selection-bar" id="selectionBar">
+  <div class="info"><strong id="selCount">0</strong> day(s) selected · <span id="selRate">$0</span><span class="hint">press Enter to book</span></div>
+  <div>
+    <button class="sb-btn primary" id="newBookingBtn">+ New booking</button>
+    <button class="sb-btn secondary" id="clearSelBtn">Clear</button>
+  </div>
+</div>
+
 <div class="container">
 
   <div class="topbar">
@@ -281,7 +340,6 @@
 
   <div id="errorBanner" class="error-banner" style="display:none;"></div>
 
-  <!-- ============ CAPACITY VIEW ============ -->
   <div class="tenant-section" id="capacityView">
 
     <div class="ceiling-panel">
@@ -308,7 +366,6 @@
       </div>
     </div>
 
-    <!-- Stale holds panel — only shows when there are stale holds -->
     <div id="stalePanelWrap"></div>
 
     <div class="panel">
@@ -368,16 +425,8 @@
     </div>
 
     <div class="panel">
-      <h2>📅 Capacity calendar <span style="font-size:13px;color:var(--text-light);font-weight:400;">click any available day to book</span></h2>
-      <p class="panel-sub">Click a green or white square to start a new booking. Click an existing hold/locked booking to view or edit it.</p>
-
-      <div id="selectionBar" class="selection-bar">
-        <div class="info"><strong id="selCount">0</strong> day(s) selected · <span id="selRate">$0</span> at full rate</div>
-        <div>
-          <button class="sb-btn primary" id="newBookingBtn">+ New booking</button>
-          <button class="sb-btn secondary" id="clearSelBtn">Clear</button>
-        </div>
-      </div>
+      <h2>📅 Capacity calendar <span style="font-size:13px;color:var(--text-light);font-weight:400;">click any available day to select</span></h2>
+      <p class="panel-sub">Click days to select. The selection bar appears at the top of your screen — book or clear from there. Press Enter to open the booking form.</p>
 
       <div class="cal-controls">
         <div class="cal-legend">
@@ -394,7 +443,6 @@
 
   </div>
 
-  <!-- ============ BOOKINGS LIST VIEW ============ -->
   <div class="tenant-section hidden" id="bookingsView">
     <div class="panel">
       <h2>📋 All bookings <span class="count" id="bookingsCount">0</span></h2>
@@ -403,7 +451,6 @@
     </div>
   </div>
 
-  <!-- ============ EIM VIEW ============ -->
   <div class="tenant-section hidden" id="eimView">
     <div class="revenue-panel">
       <div class="revenue-h">
@@ -442,12 +489,12 @@
   </div>
 
   <div class="footer">
-    Pricing: weekend $675/day · weeknight $65/hr × 4hr · Holidays from US federal calendar · Production deployment v1.0
+    Pricing: weekend $675/day · weeknight $65/hr × 4hr · Holidays from US federal calendar · Production deployment v1.2
   </div>
 
 </div>
 
-<!-- ============ BOOKING MODAL ============ -->
+<!-- ============ BOOKING MODAL (with portfolio assembler) ============ -->
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal" id="modal">
     <div class="modal-h">
@@ -501,6 +548,27 @@
         <textarea id="fNotes" maxlength="2000"></textarea>
       </div>
       <div class="audit" id="auditTrail"></div>
+
+      <!-- ============ PORTFOLIO ASSEMBLER ============ -->
+      <div class="portfolio-section" id="portfolioSection" style="display:none;">
+        <h3>📨 Send facility portfolio <span id="sentBadge" class="sent-badge" style="display:none;">Sent ✓</span></h3>
+        <div class="ps-sub">Pick a use-case preset or manually choose features. Email body builds live below.</div>
+
+        <div class="portfolio-presets">
+          <button type="button" class="preset-btn" data-preset="speaking">🎤 Speaking engagement</button>
+          <button type="button" class="preset-btn" data-preset="music">🎵 Small music event</button>
+          <button type="button" class="preset-btn" data-preset="course">📚 Course / workshop</button>
+        </div>
+
+        <div id="featureCheckboxes"></div>
+
+        <div class="portfolio-preview empty" id="portfolioPreview">Select features above to assemble the email.</div>
+
+        <div class="send-portfolio-row" id="sendPortfolioRow">
+          <button type="button" class="send-portfolio-btn" id="sendPortfolioBtn">Send portfolio email ↗</button>
+          <span class="portfolio-sent-info" id="portfolioSentInfo" style="display:none;">—</span>
+        </div>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn danger left" id="deleteBtn" style="display:none;">Delete</button>
@@ -511,7 +579,7 @@
 </div>
 
 <script>
-// ============= EIM CLASS DATA (snapshot) =============
+// ============= EIM CLASS DATA =============
 const EIM_DATA = {
   classes2026: [
     { date:'9-Jan',     start:'2026-01-09', end:'2026-01-11', days:3, name:'FDN Level 1', part:22, snack:67.86,  sent:'yes', recv:'yes', fee:'yes' },
@@ -541,6 +609,50 @@ const EIM_DATA = {
   classes2025: []
 };
 
+// ============= FACILITY FEATURES LIBRARY =============
+// Larry's facility at 165 McCaslin Blvd, Louisville CO
+const FACILITY_FEATURES = [
+  // SPACE
+  { id: 'floor_plan', cat: 'space', name: 'Floor plan',
+    desc: 'A copy of our facility floor plan is available on request to help you visualize your event setup.' },
+  { id: 'community_room', cat: 'space', name: 'Community room',
+    desc: 'Our community room provides 1,000–2,000 square feet of flexible event space — large enough for workshops, courses, gatherings, and small performances, with multiple configurations possible.' },
+  { id: 'sitting_area', cat: 'space', name: 'Sitting area (1,000–2,000 sqft)',
+    desc: 'A comfortable sitting area of 1,000–2,000 square feet, ideal for guest mingling, breakout discussions, or audience seating.' },
+  { id: 'front_desk', cat: 'space', name: 'Front desk',
+    desc: 'A staffed front desk handles guest check-in, sign-in sheets, and basic logistical support during your event.' },
+  { id: 'bathrooms', cat: 'space', name: 'Bathrooms',
+    desc: 'Clean, accessible bathrooms are located on-site and available for all attendees throughout the event.' },
+  { id: 'parking', cat: 'space', name: 'Parking',
+    desc: 'On-site parking is available for attendees at no additional charge.' },
+  { id: 'catering_area', cat: 'space', name: 'Catering area',
+    desc: 'A dedicated catering and refreshment area where food and drinks can be set up to serve attendees throughout the event.' },
+
+  // AV
+  { id: 'dual_screens', cat: 'av', name: 'Dual 120" projection screens',
+    desc: 'Two large 120-inch projection screens positioned for optimal sightlines from any seat in the room — ideal for slide presentations, video playback, or split-content displays.' },
+  { id: 'pa_system', cat: 'av', name: 'PA system',
+    desc: 'A full PA system with microphones is available for speakers, performers, or anyone who needs to address a room.' },
+  { id: 'podium', cat: 'av', name: 'Podium',
+    desc: 'A podium is available for keynote speakers, presenters, or moderated panels.' },
+  { id: 'whiteboard', cat: 'av', name: 'Whiteboard',
+    desc: 'A whiteboard is available for instructors, facilitators, or anyone who wants to teach interactively.' },
+
+  // AMENITIES
+  { id: 'chairs', cat: 'amenities', name: 'Chairs (up to ~50 available)',
+    desc: 'We have up to ~50 chairs available, which can be configured in rows, clusters, or however best fits your event.' },
+  { id: 'wifi', cat: 'amenities', name: 'Wi-Fi',
+    desc: 'High-speed Wi-Fi is available throughout the facility for staff, presenters, and attendees.' }
+];
+
+const PRESETS = {
+  speaking: ['podium', 'dual_screens', 'pa_system', 'chairs', 'front_desk', 'parking', 'bathrooms'],
+  music: ['pa_system', 'community_room', 'sitting_area', 'chairs', 'parking', 'bathrooms', 'catering_area'],
+  course: ['chairs', 'dual_screens', 'whiteboard', 'community_room', 'catering_area', 'bathrooms', 'wifi', 'parking']
+};
+
+const CAT_LABELS = { space: 'Space', av: 'AV / Equipment', amenities: 'Amenities' };
+
 // ============= CONSTANTS =============
 const FEE_PER_DAY = 675;
 const BONUS_AMOUNT = 650;
@@ -562,12 +674,15 @@ let bookings = [];
 let selectedDates = new Set();
 let editingBookingId = null;
 let editingStatus = 'hold';
+let selectedFeatures = new Set();
+let portfolioSentRecord = null; // { sentAt, sentBy, features[] }
 
 // ============= UTILITIES =============
 function fmtMoney(v) { if (v === null || v === undefined) return '—'; return '$' + v.toFixed(2); }
 function fmtMoneyWhole(v) { return '$' + Math.round(v).toLocaleString(); }
 function fmtMoneyK(v) { if (v >= 1000) return '$' + (v/1000).toFixed(1) + 'k'; return '$' + Math.round(v); }
 function showError(msg) { const el = $('errorBanner'); el.textContent = msg; el.style.display = 'block'; setTimeout(() => el.style.display = 'none', 5000); }
+function escapeHtml(str) { return String(str || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
 
 // ============= AUTH =============
 async function checkAuth() {
@@ -668,31 +783,22 @@ function isUpcoming(c) { if (c.cancelled) return false; return new Date(c.start+
 function isPast(c) { return new Date(c.start+'T00:00:00') < TODAY; }
 function computeEimFee(c) { if (c.cancelled) return {base:0,bonus:0,total:0,qualified:false}; const base = c.days*FEE_PER_DAY; const qualified = c.part !== null && c.part > BONUS_THRESHOLD; const bonus = qualified ? BONUS_AMOUNT : 0; return {base,bonus,total:base+bonus,qualified}; }
 
-// ============= BOOKING DATE INDEX =============
-// Maps date string -> booking object (for the current year)
 function getBookingDateMap(year) {
   const map = new Map();
-  bookings.forEach(b => {
-    b.dates.forEach(d => {
-      if (d.startsWith(year)) map.set(d, b);
-    });
-  });
+  bookings.forEach(b => { b.dates.forEach(d => { if (d.startsWith(year)) map.set(d, b); }); });
   return map;
 }
 
 // ============= CAPACITY ENGINE =============
 function buildCapacity(year) {
   const result = {
-    year,
-    days: [],
+    year, days: [],
     byMonth: Array.from({length:12}, () => ({ availWeekend:0, availWeeknight:0, eimWeekend:0, eimWeeknight:0, holiday:0, holidayWeekend:0, pastWeekend:0, pastWeeknight:0, maxRevenue:0, bookedRevenue:0, holdRevenue:0, lockedRevenue:0 })),
     totals: { availWeekendDays:0, availWeeknightSlots:0, eimWeekendDays:0, eimWeeknightDays:0, maxWeekendRevenue:0, maxWeeknightRevenue:0, eimBookedRevenue:0, holdRevenue:0, lockedRevenue:0 }
   };
-
   const dead = buildDeadDateSet(parseInt(year,10));
   const eimBooked = getEimBookedDates(year);
   const bookingMap = getBookingDateMap(year);
-
   let d = new Date(parseInt(year,10), 0, 1);
   const endOfYear = new Date(parseInt(year,10), 11, 31);
   while (d <= endOfYear) {
@@ -705,10 +811,9 @@ function buildCapacity(year) {
     const holidayName = isHoliday ? dead.get(dateStr) : null;
     const isEim = eimBooked.has(dateStr);
     const userBooking = bookingMap.get(dateStr);
-
     let status, label, revenue;
     if (userBooking) {
-      status = userBooking.status; // 'hold' or 'locked'
+      status = userBooking.status;
       label = userBooking.renterName + (userBooking.status === 'hold' ? ' (on hold)' : ' (locked)');
       revenue = isWeekend ? FEE_PER_DAY : WEEKNIGHT_MAX_REVENUE;
     } else if (isHoliday && isWeekend) { status = 'holiday-weekend'; label = holidayName; revenue = 0; }
@@ -716,25 +821,18 @@ function buildCapacity(year) {
     else if (isEim) { status = 'eim'; label = 'EIM: ' + eimBooked.get(dateStr); revenue = isWeekend ? FEE_PER_DAY : WEEKNIGHT_MAX_REVENUE; }
     else if (isWeekend) { status = 'weekend'; label = 'Available weekend'; revenue = FEE_PER_DAY; }
     else { status = 'weekday'; label = 'Available weeknight'; revenue = WEEKNIGHT_MAX_REVENUE; }
-
     const finalStatus = isPastDay ? status + ' past' : status;
     result.days.push({ date: dateStr, dow, month, isWeekend, isPastDay, status: finalStatus, label, revenue, booking: userBooking });
-
     if (!isPastDay) {
       if (status === 'weekend') { result.byMonth[month].availWeekend++; result.byMonth[month].maxRevenue += FEE_PER_DAY; result.totals.availWeekendDays++; result.totals.maxWeekendRevenue += FEE_PER_DAY; }
       else if (status === 'weekday') { result.byMonth[month].availWeeknight++; result.byMonth[month].maxRevenue += WEEKNIGHT_MAX_REVENUE; result.totals.availWeeknightSlots++; result.totals.maxWeeknightRevenue += WEEKNIGHT_MAX_REVENUE; }
       else if (status === 'eim') { if (isWeekend) { result.byMonth[month].eimWeekend++; result.totals.eimWeekendDays++; } else { result.byMonth[month].eimWeeknight++; result.totals.eimWeeknightDays++; } }
       else if (status === 'holiday') result.byMonth[month].holiday++;
       else if (status === 'holiday-weekend') result.byMonth[month].holidayWeekend++;
-    } else {
-      if (isWeekend) result.byMonth[month].pastWeekend++; else result.byMonth[month].pastWeeknight++;
-    }
+    } else { if (isWeekend) result.byMonth[month].pastWeekend++; else result.byMonth[month].pastWeeknight++; }
     d.setDate(d.getDate()+1);
   }
-
   result.totals.eimBookedRevenue = getEimClasses(year).reduce((s,c) => s + computeEimFee(c).total, 0);
-
-  // User booking revenue (rate quoted, divided across dates)
   bookings.forEach(b => {
     if (!b.dates.some(d => d.startsWith(year))) return;
     const yearDates = b.dates.filter(d => d.startsWith(year));
@@ -745,28 +843,12 @@ function buildCapacity(year) {
       else { result.byMonth[m].lockedRevenue += ratePerDate; result.totals.lockedRevenue += ratePerDate; }
     });
   });
-
   return result;
 }
 
-// ============= STALE HOLDS =============
-function getStaleHolds() {
-  return bookings.filter(b => {
-    if (b.status !== 'hold') return false;
-    if (!b.holdExpires) return false;
-    return b.holdExpires < TODAY_STR;
-  });
-}
-function daysOnHold(b) {
-  const created = new Date(b.createdAt).toISOString().slice(0,10);
-  const ms = TODAY - new Date(created+'T00:00:00');
-  return Math.floor(ms / (24*60*60*1000));
-}
-function daysPastExpiration(b) {
-  if (!b.holdExpires) return 0;
-  const ms = TODAY - new Date(b.holdExpires+'T00:00:00');
-  return Math.floor(ms / (24*60*60*1000));
-}
+function getStaleHolds() { return bookings.filter(b => b.status === 'hold' && b.holdExpires && b.holdExpires < TODAY_STR); }
+function daysOnHold(b) { const created = new Date(b.createdAt).toISOString().slice(0,10); return Math.floor((TODAY - new Date(created+'T00:00:00')) / (24*60*60*1000)); }
+function daysPastExpiration(b) { if (!b.holdExpires) return 0; return Math.floor((TODAY - new Date(b.holdExpires+'T00:00:00')) / (24*60*60*1000)); }
 
 // ============= RENDERERS =============
 function renderCeiling(cap) {
@@ -779,7 +861,6 @@ function renderCeiling(cap) {
   $('ceilingWeeknight').textContent = fmtMoneyWhole(cap.totals.maxWeeknightRevenue);
   $('ceilingWeeknightSub').textContent = cap.totals.availWeeknightSlots + ' weeknights × $260';
 }
-
 function renderScenarios(cap) {
   const ceiling = cap.totals.maxWeekendRevenue + cap.totals.maxWeeknightRevenue;
   const eim = cap.totals.eimBookedRevenue;
@@ -792,33 +873,23 @@ function renderScenarios(cap) {
     $(s.el.brk).innerHTML = 'EIM booked: <strong>'+fmtMoneyWhole(eim)+'</strong><br>Tenant bookings: <strong>'+fmtMoneyWhole(userBooked)+'</strong><br>+ new @ '+(s.pct*100)+'%: <strong>'+fmtMoneyWhole(newRev)+'</strong>';
   });
 }
-
 function renderStalePanel() {
   const stale = getStaleHolds();
   const wrap = $('stalePanelWrap');
   if (stale.length === 0) { wrap.innerHTML = ''; return; }
-  let html = '<div class="stale-panel">';
-  html += '<div class="stale-h"><h2>🚩 '+stale.length+' stale hold(s) — past expiration</h2></div>';
-  html += '<ul class="stale-list">';
+  let html = '<div class="stale-panel"><div class="stale-h"><h2>🚩 '+stale.length+' stale hold(s) — past expiration</h2></div><ul class="stale-list">';
   stale.forEach(b => {
     const days = daysPastExpiration(b);
     const datesShort = b.dates.length === 1 ? b.dates[0] : (b.dates[0]+' → '+b.dates[b.dates.length-1]);
-    html += '<li class="stale-item">';
-    html += '<div class="si-info"><strong>'+escapeHtml(b.renterName)+'</strong> · '+datesShort+' · '+fmtMoneyWhole(b.rateQuoted);
+    html += '<li class="stale-item"><div class="si-info"><strong>'+escapeHtml(b.renterName)+'</strong> · '+datesShort+' · '+fmtMoneyWhole(b.rateQuoted);
     html += '<div class="si-meta">'+days+' day(s) past hold expiration · contact: '+escapeHtml(b.contactName)+' ('+escapeHtml(b.contactInfo)+')</div></div>';
-    html += '<div class="stale-actions">';
-    html += '<button class="btn-mini" onclick="openModalForEdit(\''+b.id+'\')">Review</button>';
-    html += '<button class="btn-mini primary" onclick="quickLock(\''+b.id+'\')">Lock in</button>';
-    html += '<button class="btn-mini" onclick="quickRelease(\''+b.id+'\')">Release</button>';
-    html += '</div></li>';
+    html += '<div class="stale-actions"><button class="btn-mini" onclick="openModalForEdit(\''+b.id+'\')">Review</button><button class="btn-mini primary" onclick="quickLock(\''+b.id+'\')">Lock in</button><button class="btn-mini" onclick="quickRelease(\''+b.id+'\')">Release</button></div></li>';
   });
   html += '</ul></div>';
   wrap.innerHTML = html;
 }
-
 function renderPace(cap) {
-  const container = $('paceContainer');
-  container.innerHTML = '';
+  const container = $('paceContainer'); container.innerHTML = '';
   const eimByMonth = Array.from({length:12}, () => 0);
   getEimClasses(cap.year).forEach(c => { if (c.cancelled) return; const m = new Date(c.start+'T00:00:00').getMonth(); eimByMonth[m] += computeEimFee(c).total; });
   const todayMonth = TODAY.getMonth();
@@ -834,26 +905,18 @@ function renderPace(cap) {
     const barClass = pct >= 100 ? 'full' : (pct >= 75 ? 'close' : '');
     const row = document.createElement('div');
     row.className = 'pace-row' + (isCurrent ? ' current' : '');
-    row.innerHTML = '<div class="pace-month">'+MONTHS[idx]+(isCurrent?'<span class="year-tag">now</span>':'')+'</div>'+
-      '<div class="pace-bar-wrap"><div class="pace-bar '+barClass+'" style="width:'+pct+'%;"></div><span class="pace-bar-label">'+Math.round(pct)+'% of target</span></div>'+
-      '<div class="pace-need"><strong>'+fmtMoneyK(currentBooked)+'</strong> / '+fmtMoneyK(totalTarget)+'</div>'+
-      '<div class="pace-revenue">'+(gap>0?'gap '+fmtMoneyK(gap):'✓')+'</div>';
+    row.innerHTML = '<div class="pace-month">'+MONTHS[idx]+(isCurrent?'<span class="year-tag">now</span>':'')+'</div><div class="pace-bar-wrap"><div class="pace-bar '+barClass+'" style="width:'+pct+'%;"></div><span class="pace-bar-label">'+Math.round(pct)+'% of target</span></div><div class="pace-need"><strong>'+fmtMoneyK(currentBooked)+'</strong> / '+fmtMoneyK(totalTarget)+'</div><div class="pace-revenue">'+(gap>0?'gap '+fmtMoneyK(gap):'✓')+'</div>';
     container.appendChild(row);
   });
 }
-
 function renderMix(cap) {
   const eimWeekendRev = getEimClasses(cap.year).reduce((s,c) => { if (c.cancelled) return s; return s + computeEimFee(c).total; }, 0);
-  // Categorize user bookings by type
   let userWeekendRev = 0, userWeeknightRev = 0;
   bookings.forEach(b => {
     if (!b.dates.some(d => d.startsWith(cap.year))) return;
     const yearDates = b.dates.filter(d => d.startsWith(cap.year));
     const ratePerDate = yearDates.length > 0 ? b.rateQuoted / yearDates.length : 0;
-    yearDates.forEach(d => {
-      const dow = new Date(d+'T00:00:00').getDay();
-      if (dow === 0 || dow === 6) userWeekendRev += ratePerDate; else userWeeknightRev += ratePerDate;
-    });
+    yearDates.forEach(d => { const dow = new Date(d+'T00:00:00').getDay(); if (dow === 0 || dow === 6) userWeekendRev += ratePerDate; else userWeeknightRev += ratePerDate; });
   });
   const weekendRev = eimWeekendRev + userWeekendRev;
   const weeknightRev = userWeeknightRev;
@@ -865,40 +928,27 @@ function renderMix(cap) {
   $('mixWeeknightAmt').textContent = fmtMoneyWhole(weeknightRev) + ' (' + Math.round(wnPct) + '%)';
   $('mixWeeknightBar').style.width = Math.max(wnPct, 1) + '%';
   const potentialWN = cap.totals.maxWeeknightRevenue * 0.5;
-  $('mixSummary').innerHTML = '<strong>'+(weeknightRev === 0 ? 'Right now: 100% weekend revenue. ' : Math.round(wnPct)+'% weeknight, growing. ')+'</strong>'+
-    'At 50% utilization, weeknights could add <strong>'+fmtMoneyWhole(potentialWN)+'</strong> for the rest of '+cap.year+'.';
+  $('mixSummary').innerHTML = '<strong>'+(weeknightRev === 0 ? 'Right now: 100% weekend revenue. ' : Math.round(wnPct)+'% weeknight, growing. ')+'</strong>At 50% utilization, weeknights could add <strong>'+fmtMoneyWhole(potentialWN)+'</strong> for the rest of '+cap.year+'.';
 }
-
 function renderBestMonths(cap) {
   const container = $('bestMonths');
   const todayMonth = TODAY.getMonth();
   const ranked = cap.byMonth.map((m,idx) => ({idx,m})).filter(x => { if (cap.year==='2026' && x.idx<todayMonth) return false; return x.m.maxRevenue>0; }).sort((a,b) => b.m.maxRevenue - a.m.maxRevenue);
-  container.innerHTML = ranked.slice(0,8).map((x, rank) => {
-    return '<div class="best-card '+(rank===0?'top':'')+'"><div class="best-month">'+(rank===0?'🥇 ':'')+MONTHS_FULL[x.idx]+'</div>'+
-      '<div class="best-meta">'+x.m.availWeekend+' weekend · '+x.m.availWeeknight+' weeknights</div>'+
-      '<div class="best-potential">'+fmtMoneyK(x.m.maxRevenue)+'</div><div class="best-meta">max potential</div></div>';
-  }).join('');
+  container.innerHTML = ranked.slice(0,8).map((x, rank) => '<div class="best-card '+(rank===0?'top':'')+'"><div class="best-month">'+(rank===0?'🥇 ':'')+MONTHS_FULL[x.idx]+'</div><div class="best-meta">'+x.m.availWeekend+' weekend · '+x.m.availWeeknight+' weeknights</div><div class="best-potential">'+fmtMoneyK(x.m.maxRevenue)+'</div><div class="best-meta">max potential</div></div>').join('');
 }
-
 function renderCalendar(cap) {
-  const grid = $('calMonthGrid');
-  grid.innerHTML = '';
+  const grid = $('calMonthGrid'); grid.innerHTML = '';
   const dayLabels = ['S','M','T','W','T','F','S'];
   for (let monthIdx=0; monthIdx<12; monthIdx++) {
     const monthDays = cap.days.filter(d => d.month === monthIdx);
     if (monthDays.length === 0) continue;
     const monthRev = cap.byMonth[monthIdx].maxRevenue;
     const firstDow = new Date(parseInt(cap.year,10), monthIdx, 1).getDay();
-    let html = '<div class="cal-month">';
-    html += '<div class="cal-month-h"><div class="cal-month-name">'+MONTHS_FULL[monthIdx]+'</div>';
-    html += '<div class="cal-month-rev">'+(monthRev>0?fmtMoneyK(monthRev)+' max':'—')+'</div></div>';
-    html += '<div class="cal-weekdays">'+dayLabels.map(l=>'<div>'+l+'</div>').join('')+'</div>';
-    html += '<div class="cal-days">';
+    let html = '<div class="cal-month"><div class="cal-month-h"><div class="cal-month-name">'+MONTHS_FULL[monthIdx]+'</div><div class="cal-month-rev">'+(monthRev>0?fmtMoneyK(monthRev)+' max':'—')+'</div></div><div class="cal-weekdays">'+dayLabels.map(l=>'<div>'+l+'</div>').join('')+'</div><div class="cal-days">';
     for (let i=0; i<firstDow; i++) html += '<div class="cal-day empty"></div>';
     monthDays.forEach(d => {
       const dnum = new Date(d.date+'T00:00:00').getDate();
-      let cls = 'cal-day ';
-      let tip = d.label;
+      let cls = 'cal-day '; let tip = d.label;
       if (d.status.includes('past')) cls += 'past ';
       if (d.status.includes('hold')) cls += 'hold';
       else if (d.status.includes('locked')) cls += 'locked';
@@ -915,23 +965,14 @@ function renderCalendar(cap) {
     html += '</div></div>';
     grid.innerHTML += html;
   }
-  // Wire click handlers
-  grid.querySelectorAll('.cal-day[data-date]').forEach(el => {
-    el.addEventListener('click', () => handleDayClick(el.dataset.date));
-  });
+  grid.querySelectorAll('.cal-day[data-date]').forEach(el => { el.addEventListener('click', () => handleDayClick(el.dataset.date)); });
 }
 
 function handleDayClick(dateStr) {
   const dayObj = currentCap.days.find(d => d.date === dateStr);
   if (!dayObj || dayObj.isPastDay) return;
-  // If it's an existing booking, open it for edit
-  if (dayObj.booking) {
-    openModalForEdit(dayObj.booking.id);
-    return;
-  }
-  // EIM, holiday, holiday-weekend → ignore click
+  if (dayObj.booking) { openModalForEdit(dayObj.booking.id); return; }
   if (dayObj.status.includes('eim') || dayObj.status.includes('holiday')) return;
-  // Otherwise toggle selection
   if (selectedDates.has(dateStr)) selectedDates.delete(dateStr); else selectedDates.add(dateStr);
   updateSelectionBar();
   renderCalendar(currentCap);
@@ -953,29 +994,39 @@ function updateSelectionBar() {
 $('clearSelBtn').addEventListener('click', () => { selectedDates.clear(); updateSelectionBar(); renderCalendar(currentCap); });
 $('newBookingBtn').addEventListener('click', () => openModalForNew());
 
+// ============= ENTER KEY SHORTCUT (UI Fix #2) =============
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && selectedDates.size > 0 && !$('modalBackdrop').classList.contains('shown')) {
+    // Don't trigger if user is typing in an input/textarea
+    const t = e.target.tagName;
+    if (t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT') return;
+    e.preventDefault();
+    openModalForNew();
+  }
+  if (e.key === 'Escape' && $('modalBackdrop').classList.contains('shown')) closeModal();
+});
+
 // ============= MODAL =============
 function openModalForNew() {
   if (selectedDates.size === 0) { showError('Select at least one available day on the calendar first.'); return; }
   editingBookingId = null;
   editingStatus = 'hold';
+  selectedFeatures = new Set();
+  portfolioSentRecord = null;
   $('modalTitle').textContent = 'New booking';
   $('modalSub').textContent = 'Fill in details and choose hold or locked';
   populateModalDates(Array.from(selectedDates).sort());
-  // Compute suggested rate
   let suggested = 0;
   selectedDates.forEach(d => { const dow = new Date(d+'T00:00:00').getDay(); suggested += (dow===0||dow===6)?FEE_PER_DAY:WEEKNIGHT_MAX_REVENUE; });
   $('fRate').value = suggested;
-  $('fRenterName').value = '';
-  $('fCompany').value = '';
-  $('fContactName').value = '';
-  $('fContactInfo').value = '';
-  $('fNotes').value = '';
-  $('fHoldExpires').value = '';
+  $('fRenterName').value = ''; $('fCompany').value = '';
+  $('fContactName').value = ''; $('fContactInfo').value = '';
+  $('fNotes').value = ''; $('fHoldExpires').value = '';
   setStatusToggle('hold');
   $('deleteBtn').style.display = 'none';
   $('auditTrail').innerHTML = '';
-  $('modalBackdrop').classList.add('shown');
-  setTimeout(() => $('fRenterName').focus(), 100);
+  $('portfolioSection').style.display = 'none';
+  showModalAndFocus('fRenterName');
 }
 
 function openModalForEdit(id) {
@@ -983,8 +1034,10 @@ function openModalForEdit(id) {
   if (!b) return;
   editingBookingId = id;
   editingStatus = b.status;
+  selectedFeatures = new Set(b.portfolioFeatures || []);
+  portfolioSentRecord = b.portfolioSent || null;
   $('modalTitle').textContent = b.status === 'locked' ? 'Locked booking' : 'Booking on hold';
-  $('modalSub').textContent = 'Edit details, change status, or delete';
+  $('modalSub').textContent = 'Edit details, change status, send portfolio, or delete';
   populateModalDates(b.dates);
   setStatusToggle(b.status);
   $('fRenterName').value = b.renterName || '';
@@ -995,13 +1048,25 @@ function openModalForEdit(id) {
   $('fHoldExpires').value = b.holdExpires || '';
   $('fNotes').value = b.notes || '';
   $('deleteBtn').style.display = '';
-  // Audit
   let audit = '<strong>Created</strong> '+formatTimestamp(b.createdAt)+' by '+escapeHtml(b.createdBy);
   if (b.updatedAt && b.updatedAt !== b.createdAt) audit += '<br><strong>Last updated</strong> '+formatTimestamp(b.updatedAt)+' by '+escapeHtml(b.updatedBy);
   if (b.lockedAt) audit += '<br><strong>Locked in</strong> '+formatTimestamp(b.lockedAt)+' by '+escapeHtml(b.lockedBy);
   if (b.status === 'hold') audit += '<br><strong>Days on hold:</strong> '+daysOnHold(b);
   $('auditTrail').innerHTML = audit;
+  // Show portfolio section for holds (it's most useful when pitching)
+  $('portfolioSection').style.display = b.status === 'hold' ? '' : '';
+  renderPortfolioSection();
+  showModalAndFocus(null);
+}
+
+// UI Fix #3 — Auto-scroll modal into view when opened
+function showModalAndFocus(focusFieldId) {
   $('modalBackdrop').classList.add('shown');
+  // Scroll the backdrop to the top so the modal is visible
+  setTimeout(() => {
+    $('modalBackdrop').scrollTop = 0;
+    if (focusFieldId) $(focusFieldId).focus();
+  }, 50);
 }
 
 function populateModalDates(dates) {
@@ -1023,14 +1088,12 @@ $('statusLocked').addEventListener('click', () => setStatusToggle('locked'));
 function closeModal() { $('modalBackdrop').classList.remove('shown'); editingBookingId = null; }
 $('cancelBtn').addEventListener('click', closeModal);
 $('modalBackdrop').addEventListener('click', (e) => { if (e.target === $('modalBackdrop')) closeModal(); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
 $('saveBtn').addEventListener('click', async () => {
   const dates = editingBookingId ? bookings.find(b => b.id === editingBookingId).dates : Array.from(selectedDates).sort();
   const slotType = computeSlotType(dates);
   const payload = {
-    dates,
-    slotType,
+    dates, slotType,
     renterName: $('fRenterName').value.trim(),
     contactName: $('fContactName').value.trim(),
     company: $('fCompany').value.trim(),
@@ -1038,7 +1101,9 @@ $('saveBtn').addEventListener('click', async () => {
     rateQuoted: parseFloat($('fRate').value) || 0,
     status: editingStatus,
     holdExpires: editingStatus === 'hold' ? ($('fHoldExpires').value || null) : null,
-    notes: $('fNotes').value.trim()
+    notes: $('fNotes').value.trim(),
+    portfolioFeatures: Array.from(selectedFeatures),
+    portfolioSent: portfolioSentRecord
   };
   if (editingBookingId) payload.id = editingBookingId;
   try {
@@ -1055,12 +1120,8 @@ $('saveBtn').addEventListener('click', async () => {
 $('deleteBtn').addEventListener('click', async () => {
   if (!editingBookingId) return;
   if (!confirm('Delete this booking? This cannot be undone.')) return;
-  try {
-    await deleteBooking(editingBookingId);
-    await fetchBookings();
-    closeModal();
-    renderAll();
-  } catch (e) { showError('Delete failed: ' + e.message); }
+  try { await deleteBooking(editingBookingId); await fetchBookings(); closeModal(); renderAll(); }
+  catch (e) { showError('Delete failed: ' + e.message); }
 });
 
 function computeSlotType(dates) {
@@ -1071,7 +1132,144 @@ function computeSlotType(dates) {
   return 'weeknight';
 }
 
-// Quick actions for stale holds
+// ============= PORTFOLIO ASSEMBLER =============
+function renderPortfolioSection() {
+  // Render checkboxes grouped by category
+  const cats = ['space', 'av', 'amenities'];
+  let html = '';
+  cats.forEach(cat => {
+    const features = FACILITY_FEATURES.filter(f => f.cat === cat);
+    if (features.length === 0) return;
+    html += '<div class="feature-cat"><div class="feature-cat-h">'+CAT_LABELS[cat]+'</div>';
+    features.forEach(f => {
+      const checked = selectedFeatures.has(f.id) ? 'checked' : '';
+      html += '<label class="feature-cb"><input type="checkbox" data-feature="'+f.id+'" '+checked+'><span class="feature-cb-label"><span class="feature-cb-name">'+escapeHtml(f.name)+'</span><div class="feature-cb-desc">'+escapeHtml(f.desc)+'</div></span></label>';
+    });
+    html += '</div>';
+  });
+  $('featureCheckboxes').innerHTML = html;
+  // Wire checkbox handlers
+  $('featureCheckboxes').querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const id = cb.dataset.feature;
+      if (cb.checked) selectedFeatures.add(id); else selectedFeatures.delete(id);
+      // Clear preset highlights since user manually changed something
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      renderPortfolioPreview();
+    });
+  });
+  renderPortfolioPreview();
+  renderSentInfo();
+}
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const preset = btn.dataset.preset;
+    selectedFeatures = new Set(PRESETS[preset]);
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderPortfolioSection();
+  });
+});
+
+function buildPortfolioEmail() {
+  const renterName = $('fRenterName').value.trim() || '[event/renter]';
+  const contactName = $('fContactName').value.trim() || 'there';
+  const dates = editingBookingId ? bookings.find(b => b.id === editingBookingId).dates : Array.from(selectedDates).sort();
+  const datesText = dates.length === 0 ? 'the dates you requested' :
+                    dates.length === 1 ? formatDateLong(dates[0]) :
+                    formatDateLong(dates[0]) + ' through ' + formatDateLong(dates[dates.length-1]);
+
+  let body = 'Hi ' + contactName + ',\n\n';
+  body += 'Thank you for your interest in BUILD Sports Performance Lab as the venue for ' + renterName + '. Below is information about our facility and the specific features that fit your event.\n\n';
+  body += 'BUILD Sports Performance Lab is located at 165 McCaslin Blvd in Louisville, Colorado. We have your dates (' + datesText + ') tentatively held while you review this information.\n\n';
+
+  // Group selected features by category for the email body
+  const cats = ['space', 'av', 'amenities'];
+  const catEmailLabels = { space: 'THE SPACE', av: 'AV / EQUIPMENT', amenities: 'AMENITIES' };
+  cats.forEach(cat => {
+    const selected = FACILITY_FEATURES.filter(f => f.cat === cat && selectedFeatures.has(f.id));
+    if (selected.length === 0) return;
+    body += catEmailLabels[cat] + '\n';
+    selected.forEach(f => { body += '• ' + f.name + ' — ' + f.desc + '\n'; });
+    body += '\n';
+  });
+
+  body += 'Please let me know if you have any questions, or if you\'d like to schedule a walkthrough of the space. We\'re happy to talk through how to make ' + renterName + ' a great fit for our facility.\n\n';
+  body += 'Looking forward to hearing from you,\n\n';
+  body += currentUser ? currentUser.charAt(0).toUpperCase() + currentUser.slice(1) : '[your name]';
+  body += '\nBUILD Sports Performance Lab\n165 McCaslin Blvd, Louisville, CO\n';
+  return body;
+}
+
+function formatDateLong(d) {
+  const dt = new Date(d+'T00:00:00');
+  return MONTHS_FULL[dt.getMonth()] + ' ' + dt.getDate() + ', ' + dt.getFullYear();
+}
+
+function renderPortfolioPreview() {
+  const preview = $('portfolioPreview');
+  if (selectedFeatures.size === 0) {
+    preview.classList.add('empty');
+    preview.textContent = 'Select features above (or use a preset) to assemble the email.';
+  } else {
+    preview.classList.remove('empty');
+    preview.textContent = buildPortfolioEmail();
+  }
+}
+
+function renderSentInfo() {
+  const info = $('portfolioSentInfo');
+  const badge = $('sentBadge');
+  if (portfolioSentRecord) {
+    badge.style.display = '';
+    info.style.display = '';
+    const sentDate = new Date(portfolioSentRecord.sentAt);
+    const dateStr = sentDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    const featureNames = (portfolioSentRecord.features || []).map(id => {
+      const f = FACILITY_FEATURES.find(x => x.id === id); return f ? f.name : id;
+    }).join(', ');
+    info.innerHTML = '✉️ <strong>Sent ' + dateStr + ' by ' + escapeHtml(portfolioSentRecord.sentBy) + '</strong><br>Included: ' + escapeHtml(featureNames || 'no features selected') + ' <button class="unmark-sent" onclick="unmarkSent()">unmark</button>';
+  } else {
+    badge.style.display = 'none';
+    info.style.display = 'none';
+  }
+}
+
+window.unmarkSent = () => {
+  portfolioSentRecord = null;
+  renderSentInfo();
+};
+
+$('sendPortfolioBtn').addEventListener('click', () => {
+  if (selectedFeatures.size === 0) {
+    showError('Select at least one feature to send.');
+    return;
+  }
+  const contactInfo = $('fContactInfo').value.trim();
+  if (!contactInfo) { showError('Add contact info (email) before sending.'); return; }
+  // Detect if contact info looks like an email
+  const emailMatch = contactInfo.match(/[^\s@]+@[^\s@]+\.[^\s@]+/);
+  if (!emailMatch) {
+    showError('Contact info doesn\'t look like an email address. Add a valid email to send the portfolio.');
+    return;
+  }
+  const renterName = $('fRenterName').value.trim() || 'your event';
+  const subject = 'BUILD Sports Performance Lab — Facility Information for ' + renterName;
+  const body = buildPortfolioEmail();
+  const mailto = 'mailto:' + encodeURIComponent(emailMatch[0]) + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+  // Open mail client
+  window.location.href = mailto;
+  // Auto-mark as sent (Approach C)
+  portfolioSentRecord = {
+    sentAt: new Date().toISOString(),
+    sentBy: currentUser,
+    features: Array.from(selectedFeatures)
+  };
+  renderSentInfo();
+});
+
+// ============= QUICK ACTIONS =============
 window.quickLock = async (id) => {
   const b = bookings.find(x => x.id === id); if (!b) return;
   try { await saveBooking({ ...b, status: 'locked', holdExpires: null }); await fetchBookings(); renderAll(); }
@@ -1092,13 +1290,8 @@ function renderBookingsList() {
   if (list.length === 0) { container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-light);">No bookings yet. Click an available day on the calendar to create your first booking.</div>'; return; }
   container.innerHTML = list.map(b => {
     const dates = b.dates.length === 1 ? b.dates[0] : (b.dates[0]+' → '+b.dates[b.dates.length-1]+' ('+b.dates.length+'d)');
-    return '<div class="booking-row '+b.status+'" onclick="openModalForEdit(\''+b.id+'\')">'+
-      '<div class="booking-row-h"><div><span class="br-renter">'+escapeHtml(b.renterName)+'</span>'+
-      '<span class="br-status '+b.status+'">'+(b.status==='hold'?'On hold':'Locked in')+'</span></div>'+
-      '<div class="br-rate">'+fmtMoneyWhole(b.rateQuoted)+'</div></div>'+
-      '<div class="br-meta">'+dates+' · '+escapeHtml(b.contactName)+(b.company?' / '+escapeHtml(b.company):'')+' · '+escapeHtml(b.contactInfo)+
-      (b.status==='hold' && b.holdExpires ? ' · expires '+b.holdExpires+(b.holdExpires<TODAY_STR?' 🚩':'') : '')+
-      '</div></div>';
+    const portfolioBadge = b.portfolioSent ? '<span class="br-portfolio">✉️ portfolio sent</span>' : '';
+    return '<div class="booking-row '+b.status+'" onclick="openModalForEdit(\''+b.id+'\')"><div class="booking-row-h"><div><span class="br-renter">'+escapeHtml(b.renterName)+'</span><span class="br-status '+b.status+'">'+(b.status==='hold'?'On hold':'Locked in')+'</span>'+portfolioBadge+'</div><div class="br-rate">'+fmtMoneyWhole(b.rateQuoted)+'</div></div><div class="br-meta">'+dates+' · '+escapeHtml(b.contactName)+(b.company?' / '+escapeHtml(b.company):'')+' · '+escapeHtml(b.contactInfo)+(b.status==='hold' && b.holdExpires ? ' · expires '+b.holdExpires+(b.holdExpires<TODAY_STR?' 🚩':'') : '')+'</div></div>';
   }).join('');
 }
 
@@ -1131,8 +1324,6 @@ function renderEim() {
   $('kpiSnackSub').textContent = sentCount+' reimbursements sent';
   $('kpiAvg').textContent = completedWithPart.length ? (totalParticipants/completedWithPart.length).toFixed(1) : '—';
 }
-
-function escapeHtml(str) { return String(str || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
 
 // ============= MAIN =============
 let currentCap = null;

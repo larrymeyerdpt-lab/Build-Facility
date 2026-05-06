@@ -1,17 +1,8 @@
-// api/bookings.js (Postgres edition v2 — full schema)
+// api/bookings.js (Postgres edition v3 — direct JSONB binding)
 // CRUD for facility bookings, backed by Neon Postgres via @vercel/postgres.
 //
-// Schema includes core booking fields plus extended workflow fields:
-//   portfolio_features TEXT[]        -- which features were included in pitch
-//   portfolio_sent     JSONB         -- { sentAt, sentBy, features[] }
-//   janeapp_checked    JSONB         -- { checkedAt, checkedBy }
-//   agreement_sent     JSONB         -- { sentAt, sentBy }
-//   agreement_received JSONB         -- { receivedAt, receivedBy }
-//   agreement_filed    JSONB         -- { filedAt, filedBy }
-//   comms_log          JSONB         -- [{ timestamp, by, text }, ...]
-//
-// On startup, ensures the table exists AND that all expected columns exist
-// (uses ALTER TABLE ADD COLUMN IF NOT EXISTS for safe migrations).
+// Key change from v2: passes JavaScript objects directly to JSONB columns
+// without ::jsonb cast. @vercel/postgres template tag handles serialization.
 
 import { sql } from '@vercel/postgres';
 import { getUserFromRequest } from './auth.js';
@@ -20,8 +11,6 @@ let schemaReady = false;
 
 async function ensureSchema() {
   if (schemaReady) return;
-
-  // Create base table if it doesn't exist
   await sql`
     CREATE TABLE IF NOT EXISTS bookings (
       id            TEXT PRIMARY KEY,
@@ -43,8 +32,6 @@ async function ensureSchema() {
       locked_by     TEXT
     );
   `;
-
-  // Add extended workflow columns if they don't exist (safe for existing tables)
   await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS portfolio_features TEXT[];`;
   await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS portfolio_sent JSONB;`;
   await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS janeapp_checked JSONB;`;
@@ -52,15 +39,18 @@ async function ensureSchema() {
   await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS agreement_received JSONB;`;
   await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS agreement_filed JSONB;`;
   await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS comms_log JSONB;`;
-
-  // Helpful index for status-based queries
   await sql`CREATE INDEX IF NOT EXISTS bookings_status_idx ON bookings (status);`;
-
   schemaReady = true;
 }
 
 function newId() {
   return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+}
+
+// Convert a JS value to a JSON string for JSONB column, or null
+function toJsonb(value) {
+  if (value === null || value === undefined) return null;
+  return JSON.stringify(value);
 }
 
 // Convert a database row back into the JSON shape the frontend expects
@@ -85,7 +75,6 @@ function rowToBooking(r) {
     updatedBy: r.updated_by,
     lockedAt: r.locked_at ? (r.locked_at instanceof Date ? r.locked_at.toISOString() : r.locked_at) : null,
     lockedBy: r.locked_by || null,
-    // Extended workflow fields
     portfolioFeatures: r.portfolio_features || [],
     portfolioSent: r.portfolio_sent || null,
     janeappChecked: r.janeapp_checked || null,
@@ -113,13 +102,14 @@ function validateBookingPayload(b) {
 }
 
 export default async function handler(req, res) {
-  // Auth check on every request
-  const user = getUserFromRequest(req);
-  if (!user) {
-    return res.status(401).json({ ok: false, error: 'not_authenticated' });
-  }
-
+  // Wrap EVERYTHING in try/catch so any error becomes a useful response
+  // instead of crashing the function and giving a generic FUNCTION_INVOCATION_FAILED
   try {
+    const user = getUserFromRequest(req);
+    if (!user) {
+      return res.status(401).json({ ok: false, error: 'not_authenticated' });
+    }
+
     await ensureSchema();
 
     if (req.method === 'GET') {
@@ -138,14 +128,13 @@ export default async function handler(req, res) {
       const lockedBy = payload.status === 'locked' ? user.username : null;
       const holdExpires = payload.status === 'hold' ? (payload.holdExpires || null) : null;
 
-      // Extended workflow fields (default to empty/null if not provided)
       const portfolioFeatures = Array.isArray(payload.portfolioFeatures) ? payload.portfolioFeatures : [];
-      const portfolioSent = payload.portfolioSent || null;
-      const janeappChecked = payload.janeappChecked || null;
-      const agreementSent = payload.agreementSent || null;
-      const agreementReceived = payload.agreementReceived || null;
-      const agreementFiled = payload.agreementFiled || null;
-      const commsLog = Array.isArray(payload.commsLog) ? payload.commsLog : [];
+      const portfolioSentJson = toJsonb(payload.portfolioSent);
+      const janeappCheckedJson = toJsonb(payload.janeappChecked);
+      const agreementSentJson = toJsonb(payload.agreementSent);
+      const agreementReceivedJson = toJsonb(payload.agreementReceived);
+      const agreementFiledJson = toJsonb(payload.agreementFiled);
+      const commsLogJson = toJsonb(Array.isArray(payload.commsLog) ? payload.commsLog : []);
 
       const { rows } = await sql`
         INSERT INTO bookings (
@@ -173,12 +162,12 @@ export default async function handler(req, res) {
           ${lockedAt},
           ${lockedBy},
           ${portfolioFeatures},
-          ${JSON.stringify(portfolioSent)}::jsonb,
-          ${JSON.stringify(janeappChecked)}::jsonb,
-          ${JSON.stringify(agreementSent)}::jsonb,
-          ${JSON.stringify(agreementReceived)}::jsonb,
-          ${JSON.stringify(agreementFiled)}::jsonb,
-          ${JSON.stringify(commsLog)}::jsonb
+          ${portfolioSentJson},
+          ${janeappCheckedJson},
+          ${agreementSentJson},
+          ${agreementReceivedJson},
+          ${agreementFiledJson},
+          ${commsLogJson}
         )
         RETURNING *;
       `;
@@ -194,8 +183,6 @@ export default async function handler(req, res) {
         return res.status(404).json({ ok: false, error: 'booking_not_found' });
       }
       const existingBooking = rowToBooking(existing.rows[0]);
-
-      // Merge for validation
       const merged = { ...existingBooking, ...updates };
       const errors = validateBookingPayload(merged);
       if (errors.length) return res.status(400).json({ ok: false, errors });
@@ -211,14 +198,13 @@ export default async function handler(req, res) {
       }
       const holdExpires = merged.status === 'hold' ? (merged.holdExpires || null) : null;
 
-      // Extended workflow fields
       const portfolioFeatures = Array.isArray(merged.portfolioFeatures) ? merged.portfolioFeatures : [];
-      const portfolioSent = merged.portfolioSent || null;
-      const janeappChecked = merged.janeappChecked || null;
-      const agreementSent = merged.agreementSent || null;
-      const agreementReceived = merged.agreementReceived || null;
-      const agreementFiled = merged.agreementFiled || null;
-      const commsLog = Array.isArray(merged.commsLog) ? merged.commsLog : [];
+      const portfolioSentJson = toJsonb(merged.portfolioSent);
+      const janeappCheckedJson = toJsonb(merged.janeappChecked);
+      const agreementSentJson = toJsonb(merged.agreementSent);
+      const agreementReceivedJson = toJsonb(merged.agreementReceived);
+      const agreementFiledJson = toJsonb(merged.agreementFiled);
+      const commsLogJson = toJsonb(Array.isArray(merged.commsLog) ? merged.commsLog : []);
 
       const { rows } = await sql`
         UPDATE bookings SET
@@ -237,12 +223,12 @@ export default async function handler(req, res) {
           locked_at          = ${lockedAt},
           locked_by          = ${lockedBy},
           portfolio_features = ${portfolioFeatures},
-          portfolio_sent     = ${JSON.stringify(portfolioSent)}::jsonb,
-          janeapp_checked    = ${JSON.stringify(janeappChecked)}::jsonb,
-          agreement_sent     = ${JSON.stringify(agreementSent)}::jsonb,
-          agreement_received = ${JSON.stringify(agreementReceived)}::jsonb,
-          agreement_filed    = ${JSON.stringify(agreementFiled)}::jsonb,
-          comms_log          = ${JSON.stringify(commsLog)}::jsonb
+          portfolio_sent     = ${portfolioSentJson},
+          janeapp_checked    = ${janeappCheckedJson},
+          agreement_sent     = ${agreementSentJson},
+          agreement_received = ${agreementReceivedJson},
+          agreement_filed    = ${agreementFiledJson},
+          comms_log          = ${commsLogJson}
         WHERE id = ${id}
         RETURNING *;
       `;
@@ -262,7 +248,20 @@ export default async function handler(req, res) {
     res.setHeader('Allow', 'GET, POST, PUT, DELETE');
     return res.status(405).json({ ok: false, error: 'method_not_allowed' });
   } catch (err) {
-    console.error('Bookings API error:', err);
-    return res.status(500).json({ ok: false, error: 'server_error', detail: String(err.message || err) });
+    // Comprehensive error logging — both to Vercel logs AND to the response
+    // so we can see what actually failed
+    const errorDetail = {
+      message: err?.message || String(err),
+      code: err?.code || null,
+      stack: err?.stack || null,
+      name: err?.name || null
+    };
+    console.error('Bookings API error:', JSON.stringify(errorDetail, null, 2));
+    return res.status(500).json({
+      ok: false,
+      error: 'server_error',
+      detail: errorDetail.message,
+      code: errorDetail.code
+    });
   }
 }

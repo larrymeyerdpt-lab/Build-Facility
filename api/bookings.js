@@ -1,47 +1,87 @@
-// api/bookings.js
-// CRUD for facility bookings, backed by Vercel KV.
-// Storage shape:
-//   KV key 'bookings:index' -> JSON array of booking IDs
-//   KV key 'booking:<id>'   -> JSON object with full booking data
+// api/bookings.js (Postgres edition)
+// CRUD for facility bookings, backed by Neon Postgres via @vercel/postgres.
 //
-// A booking object:
-// {
-//   id: string (unix-ms + random suffix),
-//   dates: ['2026-06-15', '2026-06-16', ...],   // array of YYYY-MM-DD
-//   slotType: 'weekend' | 'weeknight' | 'mixed',
-//   renterName: string,
-//   contactName: string,
-//   company: string,
-//   contactInfo: string,
-//   rateQuoted: number,
-//   status: 'hold' | 'locked',
-//   holdExpires: 'YYYY-MM-DD' | null,
-//   notes: string,
-//   createdAt: ISO timestamp,
-//   createdBy: username,
-//   updatedAt: ISO timestamp,
-//   updatedBy: username,
-//   lockedAt: ISO timestamp | null,
-//   lockedBy: username | null
-// }
+// Schema (auto-created on first run):
+//   bookings (
+//     id           text primary key,
+//     dates        text[]           -- array of YYYY-MM-DD
+//     slot_type    text             -- 'weekend' | 'weeknight' | 'mixed'
+//     renter_name  text
+//     contact_name text
+//     company      text
+//     contact_info text
+//     rate_quoted  numeric
+//     status       text             -- 'hold' | 'locked'
+//     hold_expires date              -- nullable
+//     notes        text
+//     created_at   timestamptz
+//     created_by   text
+//     updated_at   timestamptz
+//     updated_by   text
+//     locked_at    timestamptz       -- nullable
+//     locked_by    text              -- nullable
+//   )
 
-import { kv } from '@vercel/kv';
+import { sql } from '@vercel/postgres';
 import { getUserFromRequest } from './auth.js';
 
-const INDEX_KEY = 'bookings:index';
+let schemaReady = false;
 
-function bookingKey(id) { return `booking:${id}`; }
+async function ensureSchema() {
+  if (schemaReady) return;
+  await sql`
+    CREATE TABLE IF NOT EXISTS bookings (
+      id            TEXT PRIMARY KEY,
+      dates         TEXT[] NOT NULL,
+      slot_type     TEXT NOT NULL,
+      renter_name   TEXT NOT NULL,
+      contact_name  TEXT NOT NULL,
+      company       TEXT,
+      contact_info  TEXT NOT NULL,
+      rate_quoted   NUMERIC NOT NULL,
+      status        TEXT NOT NULL,
+      hold_expires  DATE,
+      notes         TEXT,
+      created_at    TIMESTAMPTZ NOT NULL,
+      created_by    TEXT NOT NULL,
+      updated_at    TIMESTAMPTZ NOT NULL,
+      updated_by    TEXT NOT NULL,
+      locked_at     TIMESTAMPTZ,
+      locked_by     TEXT
+    );
+  `;
+  // Helpful index for date-range queries we'll likely add later
+  await sql`CREATE INDEX IF NOT EXISTS bookings_status_idx ON bookings (status);`;
+  schemaReady = true;
+}
 
 function newId() {
   return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
 }
 
-async function getIndex() {
-  const idx = await kv.get(INDEX_KEY);
-  return Array.isArray(idx) ? idx : [];
-}
-async function setIndex(arr) {
-  await kv.set(INDEX_KEY, arr);
+// Convert a database row back into the same shape the frontend expects
+function rowToBooking(r) {
+  return {
+    id: r.id,
+    dates: r.dates,
+    slotType: r.slot_type,
+    renterName: r.renter_name,
+    contactName: r.contact_name,
+    company: r.company || '',
+    contactInfo: r.contact_info,
+    rateQuoted: parseFloat(r.rate_quoted),
+    status: r.status,
+    holdExpires: r.hold_expires
+      ? (typeof r.hold_expires === 'string' ? r.hold_expires.slice(0, 10) : r.hold_expires.toISOString().slice(0, 10))
+      : null,
+    notes: r.notes || '',
+    createdAt: r.created_at instanceof Date ? r.created_at.toISOString() : r.created_at,
+    createdBy: r.created_by,
+    updatedAt: r.updated_at instanceof Date ? r.updated_at.toISOString() : r.updated_at,
+    updatedBy: r.updated_by,
+    lockedAt: r.locked_at ? (r.locked_at instanceof Date ? r.locked_at.toISOString() : r.locked_at) : null,
+    lockedBy: r.locked_by || null
+  };
 }
 
 function validateBookingPayload(b) {
@@ -60,14 +100,6 @@ function validateBookingPayload(b) {
   return errors;
 }
 
-async function getAllBookings() {
-  const index = await getIndex();
-  if (index.length === 0) return [];
-  const keys = index.map(bookingKey);
-  const results = await Promise.all(keys.map(k => kv.get(k)));
-  return results.filter(Boolean);
-}
-
 export default async function handler(req, res) {
   // Auth check on every request
   const user = getUserFromRequest(req);
@@ -76,9 +108,11 @@ export default async function handler(req, res) {
   }
 
   try {
+    await ensureSchema();
+
     if (req.method === 'GET') {
-      const bookings = await getAllBookings();
-      return res.status(200).json({ ok: true, bookings });
+      const { rows } = await sql`SELECT * FROM bookings ORDER BY dates[1] ASC;`;
+      return res.status(200).json({ ok: true, bookings: rows.map(rowToBooking) });
     }
 
     if (req.method === 'POST') {
@@ -86,77 +120,96 @@ export default async function handler(req, res) {
       const errors = validateBookingPayload(payload);
       if (errors.length) return res.status(400).json({ ok: false, errors });
 
+      const id = newId();
       const now = new Date().toISOString();
-      const booking = {
-        id: newId(),
-        dates: payload.dates,
-        slotType: payload.slotType,
-        renterName: payload.renterName.trim(),
-        contactName: payload.contactName.trim(),
-        company: (payload.company || '').trim(),
-        contactInfo: payload.contactInfo.trim(),
-        rateQuoted: payload.rateQuoted,
-        status: payload.status,
-        holdExpires: payload.status === 'hold' ? (payload.holdExpires || null) : null,
-        notes: (payload.notes || '').trim(),
-        createdAt: now,
-        createdBy: user.username,
-        updatedAt: now,
-        updatedBy: user.username,
-        lockedAt: payload.status === 'locked' ? now : null,
-        lockedBy: payload.status === 'locked' ? user.username : null
-      };
+      const lockedAt = payload.status === 'locked' ? now : null;
+      const lockedBy = payload.status === 'locked' ? user.username : null;
+      const holdExpires = payload.status === 'hold' ? (payload.holdExpires || null) : null;
 
-      await kv.set(bookingKey(booking.id), booking);
-      const index = await getIndex();
-      index.push(booking.id);
-      await setIndex(index);
-
-      return res.status(201).json({ ok: true, booking });
+      const { rows } = await sql`
+        INSERT INTO bookings (
+          id, dates, slot_type, renter_name, contact_name, company, contact_info,
+          rate_quoted, status, hold_expires, notes,
+          created_at, created_by, updated_at, updated_by, locked_at, locked_by
+        ) VALUES (
+          ${id},
+          ${payload.dates},
+          ${payload.slotType},
+          ${payload.renterName.trim()},
+          ${payload.contactName.trim()},
+          ${(payload.company || '').trim()},
+          ${payload.contactInfo.trim()},
+          ${payload.rateQuoted},
+          ${payload.status},
+          ${holdExpires},
+          ${(payload.notes || '').trim()},
+          ${now},
+          ${user.username},
+          ${now},
+          ${user.username},
+          ${lockedAt},
+          ${lockedBy}
+        )
+        RETURNING *;
+      `;
+      return res.status(201).json({ ok: true, booking: rowToBooking(rows[0]) });
     }
 
     if (req.method === 'PUT') {
       const { id, ...updates } = req.body || {};
       if (!id) return res.status(400).json({ ok: false, error: 'id_required' });
 
-      const existing = await kv.get(bookingKey(id));
-      if (!existing) return res.status(404).json({ ok: false, error: 'booking_not_found' });
+      const existing = await sql`SELECT * FROM bookings WHERE id = ${id};`;
+      if (existing.rows.length === 0) {
+        return res.status(404).json({ ok: false, error: 'booking_not_found' });
+      }
+      const existingBooking = rowToBooking(existing.rows[0]);
 
-      // Build merged candidate, then validate
-      const merged = { ...existing, ...updates };
+      // Merge for validation
+      const merged = { ...existingBooking, ...updates };
       const errors = validateBookingPayload(merged);
       if (errors.length) return res.status(400).json({ ok: false, errors });
 
       const now = new Date().toISOString();
-      merged.updatedAt = now;
-      merged.updatedBy = user.username;
-
-      // If status transitions to 'locked' and wasn't before, stamp it
-      if (merged.status === 'locked' && existing.status !== 'locked') {
-        merged.lockedAt = now;
-        merged.lockedBy = user.username;
+      let lockedAt = existing.rows[0].locked_at;
+      let lockedBy = existing.rows[0].locked_by;
+      if (merged.status === 'locked' && existingBooking.status !== 'locked') {
+        lockedAt = now; lockedBy = user.username;
       }
-      // If reverted to hold, clear lock
-      if (merged.status === 'hold' && existing.status === 'locked') {
-        merged.lockedAt = null;
-        merged.lockedBy = null;
+      if (merged.status === 'hold' && existingBooking.status === 'locked') {
+        lockedAt = null; lockedBy = null;
       }
+      const holdExpires = merged.status === 'hold' ? (merged.holdExpires || null) : null;
 
-      await kv.set(bookingKey(id), merged);
-      return res.status(200).json({ ok: true, booking: merged });
+      const { rows } = await sql`
+        UPDATE bookings SET
+          dates        = ${merged.dates},
+          slot_type    = ${merged.slotType},
+          renter_name  = ${merged.renterName.trim()},
+          contact_name = ${merged.contactName.trim()},
+          company      = ${(merged.company || '').trim()},
+          contact_info = ${merged.contactInfo.trim()},
+          rate_quoted  = ${merged.rateQuoted},
+          status       = ${merged.status},
+          hold_expires = ${holdExpires},
+          notes        = ${(merged.notes || '').trim()},
+          updated_at   = ${now},
+          updated_by   = ${user.username},
+          locked_at    = ${lockedAt},
+          locked_by    = ${lockedBy}
+        WHERE id = ${id}
+        RETURNING *;
+      `;
+      return res.status(200).json({ ok: true, booking: rowToBooking(rows[0]) });
     }
 
     if (req.method === 'DELETE') {
       const { id } = req.body || {};
       if (!id) return res.status(400).json({ ok: false, error: 'id_required' });
-
-      const existing = await kv.get(bookingKey(id));
-      if (!existing) return res.status(404).json({ ok: false, error: 'booking_not_found' });
-
-      await kv.del(bookingKey(id));
-      const index = await getIndex();
-      await setIndex(index.filter(x => x !== id));
-
+      const result = await sql`DELETE FROM bookings WHERE id = ${id} RETURNING id;`;
+      if (result.rows.length === 0) {
+        return res.status(404).json({ ok: false, error: 'booking_not_found' });
+      }
       return res.status(200).json({ ok: true });
     }
 

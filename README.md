@@ -9,7 +9,7 @@ at 165 McCaslin Blvd, Louisville CO.
 - Tracks new tenant bookings (yoga, coaching groups, weeknight rentals, etc.) with hold/locked-in lifecycle
 - Visualizes available weekend days and weeknight slots through end of year
 - Projects revenue under three scenarios (25/50/75% utilization of unbooked capacity)
-- Highlights stale holds past expiration so Savannah can chase or release
+- Highlights stale holds past expiration so Savannah can chase or release 
 - Marks federal holidays + dead holiday-adjacent weekends 
 
 ## Stack

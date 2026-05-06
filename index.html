@@ -214,6 +214,60 @@
   .audit { font-size: 11px; color: var(--text-light); margin-top: 8px; line-height: 1.5; }
   .audit strong { color: var(--text-secondary); }
 
+  /* ============ JANEAPP VERIFICATION ============ */
+  .janeapp-section {
+    background: var(--blue-soft); border-left: 3px solid var(--blue);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 10px 14px; margin-bottom: 14px;
+  }
+  .janeapp-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+  .janeapp-h h4 { font-size: 13px; font-weight: 700; color: var(--blue); }
+  .janeapp-h .open-btn {
+    background: var(--blue); color: white; border: none; padding: 4px 10px;
+    border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer;
+    text-decoration: none; font-family: inherit; display: inline-block;
+  }
+  .janeapp-h .open-btn:hover { background: #2d4763; }
+  .janeapp-cb { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 12px; cursor: pointer; }
+  .janeapp-cb input { width: 14px; height: 14px; cursor: pointer; }
+  .janeapp-stamp { font-size: 11px; color: var(--text-light); margin-top: 4px; padding-left: 22px; }
+  .janeapp-stamp strong { color: var(--blue); }
+
+  /* ============ COMMUNICATIONS LOG ============ */
+  .comms-log { margin-bottom: 14px; }
+  .comms-log label { display: block; font-size: 11px; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+  .comms-input { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; color: var(--text); background: var(--bg); resize: vertical; min-height: 50px; }
+  .comms-input:focus { outline: none; border-color: var(--accent); }
+  .comms-history { margin-top: 8px; max-height: 180px; overflow-y: auto; }
+  .comms-entry {
+    background: var(--bg); border-left: 2px solid var(--border);
+    padding: 6px 10px; margin-bottom: 6px; border-radius: 0 6px 6px 0;
+    font-size: 12px; line-height: 1.45;
+  }
+  .comms-entry-stamp { font-size: 10px; color: var(--text-light); margin-bottom: 2px; }
+  .comms-entry-stamp strong { color: var(--text-secondary); }
+  .comms-entry-text { color: var(--text); white-space: pre-wrap; word-wrap: break-word; }
+  .comms-empty { font-size: 11px; color: var(--text-light); font-style: italic; padding: 6px 0; }
+
+  /* ============ AGREEMENT SECTION ============ */
+  .agreement-section {
+    margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);
+  }
+  .agreement-section h4 { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .agreement-row {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; margin-bottom: 6px; display: flex; align-items: flex-start;
+    gap: 10px; flex-wrap: wrap;
+  }
+  .agreement-row.done { background: var(--green-soft); border-color: var(--green); }
+  .agreement-row .ag-cb { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 200px; cursor: pointer; }
+  .agreement-row .ag-cb input { width: 14px; height: 14px; cursor: pointer; }
+  .agreement-row .ag-cb-label { font-size: 13px; font-weight: 600; }
+  .agreement-row .ag-stamp { font-size: 11px; color: var(--green); font-weight: 600; }
+  .agreement-row .ag-action { background: var(--accent); color: white; border: none; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .agreement-row .ag-action:hover { background: var(--accent-dark); }
+  .agreement-row .ag-action:disabled { opacity: 0.4; cursor: not-allowed; }
+
   /* ============ PORTFOLIO SECTION (in modal) ============ */
   .portfolio-section {
     margin-top: 20px;
@@ -520,6 +574,20 @@
         <label>Selected dates</label>
         <div class="dates-display" id="modalDates">—</div>
       </div>
+
+      <!-- ============ JANEAPP VERIFICATION ============ -->
+      <div class="janeapp-section">
+        <div class="janeapp-h">
+          <h4>📅 Verify on Janeapp</h4>
+          <a class="open-btn" href="https://build.janeapp.com/admin#schedule/" target="_blank" rel="noopener">Open Janeapp schedule ↗</a>
+        </div>
+        <label class="janeapp-cb">
+          <input type="checkbox" id="fJaneappChecked">
+          <span>Checked Janeapp — these dates are clear of clinical bookings</span>
+        </label>
+        <div class="janeapp-stamp" id="janeappStamp" style="display:none;">—</div>
+      </div>
+
       <div class="field">
         <label>Status</label>
         <div class="status-toggle">
@@ -557,11 +625,40 @@
           <input type="date" id="fHoldExpires">
         </div>
       </div>
-      <div class="field">
-        <label>Notes</label>
-        <textarea id="fNotes" maxlength="2000"></textarea>
+      <!-- ============ COMMUNICATIONS LOG ============ -->
+      <div class="comms-log">
+        <label>Communications log</label>
+        <textarea class="comms-input" id="fCommsInput" placeholder="Add a note (call, text, email, preferences, allergies, etc.) — gets timestamped on save"></textarea>
+        <div class="comms-history" id="commsHistory"></div>
       </div>
       <div class="audit" id="auditTrail"></div>
+
+      <!-- ============ AGREEMENT SECTION ============ -->
+      <div class="agreement-section" id="agreementSection">
+        <h4>📜 Agreement workflow</h4>
+        <div class="agreement-row" id="agSentRow">
+          <label class="ag-cb">
+            <input type="checkbox" id="fAgSent">
+            <span class="ag-cb-label">Agreement sent</span>
+          </label>
+          <button class="ag-action" type="button" id="agSendBtn">Send agreement email ↗</button>
+          <span class="ag-stamp" id="agSentStamp" style="display:none;">—</span>
+        </div>
+        <div class="agreement-row" id="agReceivedRow">
+          <label class="ag-cb">
+            <input type="checkbox" id="fAgReceived">
+            <span class="ag-cb-label">Signed agreement received</span>
+          </label>
+          <span class="ag-stamp" id="agReceivedStamp" style="display:none;">—</span>
+        </div>
+        <div class="agreement-row" id="agFiledRow">
+          <label class="ag-cb">
+            <input type="checkbox" id="fAgFiled">
+            <span class="ag-cb-label">Agreement signed and filed</span>
+          </label>
+          <span class="ag-stamp" id="agFiledStamp" style="display:none;">—</span>
+        </div>
+      </div>
 
       <!-- ============ PORTFOLIO ASSEMBLER ============ -->
       <div class="portfolio-section" id="portfolioSection">
@@ -701,6 +798,11 @@ let editingBookingId = null;
 let editingStatus = 'hold';
 let selectedFeatures = new Set();
 let portfolioSentRecord = null; // { sentAt, sentBy, features[] }
+let janeappCheckedRecord = null; // { checkedAt, checkedBy }
+let agSentRecord = null; // { sentAt, sentBy }
+let agReceivedRecord = null; // { receivedAt, receivedBy }
+let agFiledRecord = null; // { filedAt, filedBy }
+let commsLog = []; // [{ timestamp, by, text }, ...]
 
 // ============= UTILITIES =============
 function fmtMoney(v) { if (v === null || v === undefined) return '—'; return '$' + v.toFixed(2); }
@@ -1038,6 +1140,11 @@ function openModalForNew() {
   editingStatus = 'hold';
   selectedFeatures = new Set();
   portfolioSentRecord = null;
+  janeappCheckedRecord = null;
+  agSentRecord = null;
+  agReceivedRecord = null;
+  agFiledRecord = null;
+  commsLog = [];
   $('modalTitle').textContent = 'New booking';
   $('modalSub').textContent = 'Fill in details and choose hold or locked';
   populateModalDates(Array.from(selectedDates).sort());
@@ -1046,13 +1153,20 @@ function openModalForNew() {
   $('fRate').value = suggested;
   $('fRenterName').value = ''; $('fCompany').value = '';
   $('fContactName').value = ''; $('fContactInfo').value = '';
-  $('fNotes').value = ''; $('fHoldExpires').value = '';
+  $('fCommsInput').value = ''; $('fHoldExpires').value = '';
+  $('fJaneappChecked').checked = false;
+  $('fAgSent').checked = false;
+  $('fAgReceived').checked = false;
+  $('fAgFiled').checked = false;
   setStatusToggle('hold');
   $('deleteBtn').style.display = 'none';
   $('auditTrail').innerHTML = '';
   // Portfolio section always visible, starts collapsed for new bookings
   $('portfolioSection').classList.remove('expanded');
   renderPortfolioSection();
+  renderJaneappStamp();
+  renderCommsHistory();
+  renderAgreementStamps();
   showModalAndFocus('fRenterName');
 }
 
@@ -1063,6 +1177,11 @@ function openModalForEdit(id) {
   editingStatus = b.status;
   selectedFeatures = new Set(b.portfolioFeatures || []);
   portfolioSentRecord = b.portfolioSent || null;
+  janeappCheckedRecord = b.janeappChecked || null;
+  agSentRecord = b.agreementSent || null;
+  agReceivedRecord = b.agreementReceived || null;
+  agFiledRecord = b.agreementFiled || null;
+  commsLog = b.commsLog || [];
   $('modalTitle').textContent = b.status === 'locked' ? 'Locked booking' : 'Booking on hold';
   $('modalSub').textContent = 'Edit details, change status, send portfolio, or delete';
   populateModalDates(b.dates);
@@ -1073,7 +1192,11 @@ function openModalForEdit(id) {
   $('fContactInfo').value = b.contactInfo || '';
   $('fRate').value = b.rateQuoted;
   $('fHoldExpires').value = b.holdExpires || '';
-  $('fNotes').value = b.notes || '';
+  $('fCommsInput').value = '';  // input is for new entries only
+  $('fJaneappChecked').checked = !!janeappCheckedRecord;
+  $('fAgSent').checked = !!agSentRecord;
+  $('fAgReceived').checked = !!agReceivedRecord;
+  $('fAgFiled').checked = !!agFiledRecord;
   $('deleteBtn').style.display = '';
   let audit = '<strong>Created</strong> '+formatTimestamp(b.createdAt)+' by '+escapeHtml(b.createdBy);
   if (b.updatedAt && b.updatedAt !== b.createdAt) audit += '<br><strong>Last updated</strong> '+formatTimestamp(b.updatedAt)+' by '+escapeHtml(b.updatedBy);
@@ -1083,6 +1206,9 @@ function openModalForEdit(id) {
   // Portfolio section: expanded by default when editing (more useful in this state)
   $('portfolioSection').classList.add('expanded');
   renderPortfolioSection();
+  renderJaneappStamp();
+  renderCommsHistory();
+  renderAgreementStamps();
   showModalAndFocus(null);
 }
 
@@ -1119,6 +1245,16 @@ $('modalBackdrop').addEventListener('click', (e) => { if (e.target === $('modalB
 $('saveBtn').addEventListener('click', async () => {
   const dates = editingBookingId ? bookings.find(b => b.id === editingBookingId).dates : Array.from(selectedDates).sort();
   const slotType = computeSlotType(dates);
+  // If user typed a new comms entry, prepend it to the log
+  const newCommsText = $('fCommsInput').value.trim();
+  const updatedCommsLog = commsLog.slice();
+  if (newCommsText) {
+    updatedCommsLog.push({
+      timestamp: new Date().toISOString(),
+      by: currentUser,
+      text: newCommsText
+    });
+  }
   const payload = {
     dates, slotType,
     renterName: $('fRenterName').value.trim(),
@@ -1128,9 +1264,14 @@ $('saveBtn').addEventListener('click', async () => {
     rateQuoted: parseFloat($('fRate').value) || 0,
     status: editingStatus,
     holdExpires: editingStatus === 'hold' ? ($('fHoldExpires').value || null) : null,
-    notes: $('fNotes').value.trim(),
+    notes: '',  // legacy field, kept empty for compat
     portfolioFeatures: Array.from(selectedFeatures),
-    portfolioSent: portfolioSentRecord
+    portfolioSent: portfolioSentRecord,
+    janeappChecked: janeappCheckedRecord,
+    agreementSent: agSentRecord,
+    agreementReceived: agReceivedRecord,
+    agreementFiled: agFiledRecord,
+    commsLog: updatedCommsLog
   };
   if (editingBookingId) payload.id = editingBookingId;
   try {
@@ -1326,6 +1467,148 @@ $('sendPortfolioBtn').addEventListener('click', () => {
   renderSentInfo();
 });
 
+// ============= JANEAPP, COMMS LOG, AGREEMENT =============
+
+function renderJaneappStamp() {
+  const stamp = $('janeappStamp');
+  if (janeappCheckedRecord) {
+    stamp.style.display = '';
+    const dt = new Date(janeappCheckedRecord.checkedAt);
+    const dateStr = dt.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    stamp.innerHTML = '<strong>✓ Verified ' + dateStr + ' by ' + escapeHtml(janeappCheckedRecord.checkedBy) + '</strong>';
+  } else {
+    stamp.style.display = 'none';
+  }
+}
+
+$('fJaneappChecked').addEventListener('change', () => {
+  if ($('fJaneappChecked').checked) {
+    janeappCheckedRecord = { checkedAt: new Date().toISOString(), checkedBy: currentUser };
+  } else {
+    janeappCheckedRecord = null;
+  }
+  renderJaneappStamp();
+});
+
+function renderCommsHistory() {
+  const container = $('commsHistory');
+  if (commsLog.length === 0) {
+    container.innerHTML = '<div class="comms-empty">No communications logged yet. Add a note above and save.</div>';
+    return;
+  }
+  // Newest first
+  const sorted = commsLog.slice().sort((a,b) => b.timestamp.localeCompare(a.timestamp));
+  container.innerHTML = sorted.map(entry => {
+    const dt = new Date(entry.timestamp);
+    const dateStr = dt.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) + ' · ' + dt.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    return '<div class="comms-entry"><div class="comms-entry-stamp"><strong>' + dateStr + '</strong> · ' + escapeHtml(entry.by) + '</div><div class="comms-entry-text">' + escapeHtml(entry.text) + '</div></div>';
+  }).join('');
+}
+
+function renderAgreementStamps() {
+  // Sent row
+  const sentRow = $('agSentRow');
+  const sentStamp = $('agSentStamp');
+  if (agSentRecord) {
+    sentRow.classList.add('done');
+    sentStamp.style.display = '';
+    const dt = new Date(agSentRecord.sentAt);
+    sentStamp.textContent = '✓ Sent ' + dt.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) + ' by ' + agSentRecord.sentBy;
+  } else {
+    sentRow.classList.remove('done');
+    sentStamp.style.display = 'none';
+  }
+  // Received row
+  const receivedRow = $('agReceivedRow');
+  const receivedStamp = $('agReceivedStamp');
+  if (agReceivedRecord) {
+    receivedRow.classList.add('done');
+    receivedStamp.style.display = '';
+    const dt = new Date(agReceivedRecord.receivedAt);
+    receivedStamp.textContent = '✓ Received ' + dt.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) + ' by ' + agReceivedRecord.receivedBy;
+  } else {
+    receivedRow.classList.remove('done');
+    receivedStamp.style.display = 'none';
+  }
+  // Filed row
+  const filedRow = $('agFiledRow');
+  const filedStamp = $('agFiledStamp');
+  if (agFiledRecord) {
+    filedRow.classList.add('done');
+    filedStamp.style.display = '';
+    const dt = new Date(agFiledRecord.filedAt);
+    filedStamp.textContent = '✓ Filed ' + dt.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) + ' by ' + agFiledRecord.filedBy;
+  } else {
+    filedRow.classList.remove('done');
+    filedStamp.style.display = 'none';
+  }
+}
+
+$('fAgSent').addEventListener('change', () => {
+  if ($('fAgSent').checked) {
+    agSentRecord = { sentAt: new Date().toISOString(), sentBy: currentUser };
+  } else {
+    agSentRecord = null;
+  }
+  renderAgreementStamps();
+});
+
+$('fAgReceived').addEventListener('change', () => {
+  if ($('fAgReceived').checked) {
+    agReceivedRecord = { receivedAt: new Date().toISOString(), receivedBy: currentUser };
+  } else {
+    agReceivedRecord = null;
+  }
+  renderAgreementStamps();
+});
+
+$('fAgFiled').addEventListener('change', () => {
+  if ($('fAgFiled').checked) {
+    agFiledRecord = { filedAt: new Date().toISOString(), filedBy: currentUser };
+  } else {
+    agFiledRecord = null;
+  }
+  renderAgreementStamps();
+});
+
+// Send agreement email — opens mailto with placeholder template, auto-checks "Sent"
+$('agSendBtn').addEventListener('click', () => {
+  const contactInfo = $('fContactInfo').value.trim();
+  if (!contactInfo) { showError('Add contact info (email) before sending agreement.'); return; }
+  const emailMatch = contactInfo.match(/[^\s@]+@[^\s@]+\.[^\s@]+/);
+  if (!emailMatch) { showError('Contact info doesn\'t look like an email address.'); return; }
+  const renterName = $('fRenterName').value.trim() || 'your event';
+  const contactName = $('fContactName').value.trim() || 'there';
+  const dates = editingBookingId ? bookings.find(b => b.id === editingBookingId).dates : Array.from(selectedDates).sort();
+  const datesText = dates.length === 0 ? 'the dates we discussed' :
+                    dates.length === 1 ? formatDateLong(dates[0]) :
+                    formatDateLong(dates[0]) + ' through ' + formatDateLong(dates[dates.length-1]);
+  const rate = parseFloat($('fRate').value) || 0;
+
+  const subject = 'BUILD Sports Performance Lab — Facility Rental Agreement for ' + renterName;
+  let body = 'Hi ' + contactName + ',\n\n';
+  body += 'Thank you for confirming ' + renterName + ' at BUILD Sports Performance Lab. This email contains our facility rental agreement for your review and signature.\n\n';
+  body += 'EVENT DETAILS\n';
+  body += '• Renter / Event: ' + renterName + '\n';
+  body += '• Dates: ' + datesText + '\n';
+  body += '• Rate: $' + rate.toLocaleString() + '\n';
+  body += '• Venue: BUILD Sports Performance Lab, 165 McCaslin Blvd, Louisville, CO\n\n';
+  body += '[ATTACH AGREEMENT PDF/DOCX BEFORE SENDING — placeholder for now]\n\n';
+  body += 'Please review the attached agreement, sign it, and return a signed copy by reply email. Once we receive the signed agreement, your dates are fully confirmed.\n\n';
+  body += 'Let me know if you have any questions or need to discuss any of the terms.\n\n';
+  body += 'Looking forward to hosting ' + renterName + ',\n\n';
+  body += currentUser ? currentUser.charAt(0).toUpperCase() + currentUser.slice(1) : '[your name]';
+  body += '\nBUILD Sports Performance Lab\n165 McCaslin Blvd, Louisville, CO\n';
+
+  const mailto = 'mailto:' + encodeURIComponent(emailMatch[0]) + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+  window.location.href = mailto;
+
+  // Auto-check "Agreement sent"
+  $('fAgSent').checked = true;
+  agSentRecord = { sentAt: new Date().toISOString(), sentBy: currentUser };
+  renderAgreementStamps();
+});
+
 // ============= QUICK ACTIONS =============
 window.quickLock = async (id) => {
   const b = bookings.find(x => x.id === id); if (!b) return;
@@ -1348,7 +1631,14 @@ function renderBookingsList() {
   container.innerHTML = list.map(b => {
     const dates = b.dates.length === 1 ? b.dates[0] : (b.dates[0]+' → '+b.dates[b.dates.length-1]+' ('+b.dates.length+'d)');
     const portfolioBadge = b.portfolioSent ? '<span class="br-portfolio">✉️ portfolio sent</span>' : '';
-    return '<div class="booking-row '+b.status+'" onclick="openModalForEdit(\''+b.id+'\')"><div class="booking-row-h"><div><span class="br-renter">'+escapeHtml(b.renterName)+'</span><span class="br-status '+b.status+'">'+(b.status==='hold'?'On hold':'Locked in')+'</span>'+portfolioBadge+'</div><div class="br-rate">'+fmtMoneyWhole(b.rateQuoted)+'</div></div><div class="br-meta">'+dates+' · '+escapeHtml(b.contactName)+(b.company?' / '+escapeHtml(b.company):'')+' · '+escapeHtml(b.contactInfo)+(b.status==='hold' && b.holdExpires ? ' · expires '+b.holdExpires+(b.holdExpires<TODAY_STR?' 🚩':'') : '')+'</div></div>';
+    const janeappBadge = b.janeappChecked ? '<span class="br-portfolio" style="color:var(--blue);">📅 janeapp ✓</span>' : '';
+    let agreementBadge = '';
+    if (b.agreementFiled) agreementBadge = '<span class="br-portfolio" style="color:var(--green);">📜 filed</span>';
+    else if (b.agreementReceived) agreementBadge = '<span class="br-portfolio" style="color:var(--amber);">📜 signed received</span>';
+    else if (b.agreementSent) agreementBadge = '<span class="br-portfolio" style="color:var(--text-light);">📜 sent</span>';
+    const commsCount = (b.commsLog || []).length;
+    const commsBadge = commsCount > 0 ? '<span class="br-portfolio" style="color:var(--text-secondary);">💬 ' + commsCount + '</span>' : '';
+    return '<div class="booking-row '+b.status+'" onclick="openModalForEdit(\''+b.id+'\')"><div class="booking-row-h"><div><span class="br-renter">'+escapeHtml(b.renterName)+'</span><span class="br-status '+b.status+'">'+(b.status==='hold'?'On hold':'Locked in')+'</span>'+janeappBadge+portfolioBadge+agreementBadge+commsBadge+'</div><div class="br-rate">'+fmtMoneyWhole(b.rateQuoted)+'</div></div><div class="br-meta">'+dates+' · '+escapeHtml(b.contactName)+(b.company?' / '+escapeHtml(b.company):'')+' · '+escapeHtml(b.contactInfo)+(b.status==='hold' && b.holdExpires ? ' · expires '+b.holdExpires+(b.holdExpires<TODAY_STR?' 🚩':'') : '')+'</div></div>';
   }).join('');
 }
 

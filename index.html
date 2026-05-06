@@ -1210,13 +1210,17 @@ document.querySelectorAll('.preset-btn').forEach(btn => {
   });
 });
 
-// Toggle portfolio expand/collapse
+// Toggle portfolio expand/collapse — always re-render on expand so empty state
+// reflects current field values rather than stale values from when modal opened
 $('portfolioToggle').addEventListener('click', () => {
   $('portfolioSection').classList.toggle('expanded');
+  if ($('portfolioSection').classList.contains('expanded')) {
+    renderPortfolioSection();
+  }
 });
 
 // Re-render portfolio section when renter name or contact info change
-// (lifts empty state the moment you fill them in)
+// (lifts empty state the moment you fill them in, if section is already open)
 ['fRenterName', 'fContactInfo'].forEach(id => {
   $(id).addEventListener('input', () => {
     if ($('portfolioSection').classList.contains('expanded')) {

@@ -1,26 +1,17 @@
-// api/bookings.js (Postgres edition)
+// api/bookings.js (Postgres edition v2 — full schema)
 // CRUD for facility bookings, backed by Neon Postgres via @vercel/postgres.
 //
-// Schema (auto-created on first run):
-//   bookings (
-//     id           text primary key,
-//     dates        text[]           -- array of YYYY-MM-DD
-//     slot_type    text             -- 'weekend' | 'weeknight' | 'mixed'
-//     renter_name  text
-//     contact_name text
-//     company      text
-//     contact_info text
-//     rate_quoted  numeric
-//     status       text             -- 'hold' | 'locked'
-//     hold_expires date              -- nullable
-//     notes        text
-//     created_at   timestamptz
-//     created_by   text
-//     updated_at   timestamptz
-//     updated_by   text
-//     locked_at    timestamptz       -- nullable
-//     locked_by    text              -- nullable
-//   )
+// Schema includes core booking fields plus extended workflow fields:
+//   portfolio_features TEXT[]        -- which features were included in pitch
+//   portfolio_sent     JSONB         -- { sentAt, sentBy, features[] }
+//   janeapp_checked    JSONB         -- { checkedAt, checkedBy }
+//   agreement_sent     JSONB         -- { sentAt, sentBy }
+//   agreement_received JSONB         -- { receivedAt, receivedBy }
+//   agreement_filed    JSONB         -- { filedAt, filedBy }
+//   comms_log          JSONB         -- [{ timestamp, by, text }, ...]
+//
+// On startup, ensures the table exists AND that all expected columns exist
+// (uses ALTER TABLE ADD COLUMN IF NOT EXISTS for safe migrations).
 
 import { sql } from '@vercel/postgres';
 import { getUserFromRequest } from './auth.js';
@@ -29,6 +20,8 @@ let schemaReady = false;
 
 async function ensureSchema() {
   if (schemaReady) return;
+
+  // Create base table if it doesn't exist
   await sql`
     CREATE TABLE IF NOT EXISTS bookings (
       id            TEXT PRIMARY KEY,
@@ -50,8 +43,19 @@ async function ensureSchema() {
       locked_by     TEXT
     );
   `;
-  // Helpful index for date-range queries we'll likely add later
+
+  // Add extended workflow columns if they don't exist (safe for existing tables)
+  await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS portfolio_features TEXT[];`;
+  await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS portfolio_sent JSONB;`;
+  await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS janeapp_checked JSONB;`;
+  await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS agreement_sent JSONB;`;
+  await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS agreement_received JSONB;`;
+  await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS agreement_filed JSONB;`;
+  await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS comms_log JSONB;`;
+
+  // Helpful index for status-based queries
   await sql`CREATE INDEX IF NOT EXISTS bookings_status_idx ON bookings (status);`;
+
   schemaReady = true;
 }
 
@@ -59,7 +63,7 @@ function newId() {
   return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
 }
 
-// Convert a database row back into the same shape the frontend expects
+// Convert a database row back into the JSON shape the frontend expects
 function rowToBooking(r) {
   return {
     id: r.id,
@@ -80,7 +84,15 @@ function rowToBooking(r) {
     updatedAt: r.updated_at instanceof Date ? r.updated_at.toISOString() : r.updated_at,
     updatedBy: r.updated_by,
     lockedAt: r.locked_at ? (r.locked_at instanceof Date ? r.locked_at.toISOString() : r.locked_at) : null,
-    lockedBy: r.locked_by || null
+    lockedBy: r.locked_by || null,
+    // Extended workflow fields
+    portfolioFeatures: r.portfolio_features || [],
+    portfolioSent: r.portfolio_sent || null,
+    janeappChecked: r.janeapp_checked || null,
+    agreementSent: r.agreement_sent || null,
+    agreementReceived: r.agreement_received || null,
+    agreementFiled: r.agreement_filed || null,
+    commsLog: r.comms_log || []
   };
 }
 
@@ -126,11 +138,22 @@ export default async function handler(req, res) {
       const lockedBy = payload.status === 'locked' ? user.username : null;
       const holdExpires = payload.status === 'hold' ? (payload.holdExpires || null) : null;
 
+      // Extended workflow fields (default to empty/null if not provided)
+      const portfolioFeatures = Array.isArray(payload.portfolioFeatures) ? payload.portfolioFeatures : [];
+      const portfolioSent = payload.portfolioSent || null;
+      const janeappChecked = payload.janeappChecked || null;
+      const agreementSent = payload.agreementSent || null;
+      const agreementReceived = payload.agreementReceived || null;
+      const agreementFiled = payload.agreementFiled || null;
+      const commsLog = Array.isArray(payload.commsLog) ? payload.commsLog : [];
+
       const { rows } = await sql`
         INSERT INTO bookings (
           id, dates, slot_type, renter_name, contact_name, company, contact_info,
           rate_quoted, status, hold_expires, notes,
-          created_at, created_by, updated_at, updated_by, locked_at, locked_by
+          created_at, created_by, updated_at, updated_by, locked_at, locked_by,
+          portfolio_features, portfolio_sent, janeapp_checked,
+          agreement_sent, agreement_received, agreement_filed, comms_log
         ) VALUES (
           ${id},
           ${payload.dates},
@@ -148,7 +171,14 @@ export default async function handler(req, res) {
           ${now},
           ${user.username},
           ${lockedAt},
-          ${lockedBy}
+          ${lockedBy},
+          ${portfolioFeatures},
+          ${JSON.stringify(portfolioSent)}::jsonb,
+          ${JSON.stringify(janeappChecked)}::jsonb,
+          ${JSON.stringify(agreementSent)}::jsonb,
+          ${JSON.stringify(agreementReceived)}::jsonb,
+          ${JSON.stringify(agreementFiled)}::jsonb,
+          ${JSON.stringify(commsLog)}::jsonb
         )
         RETURNING *;
       `;
@@ -181,22 +211,38 @@ export default async function handler(req, res) {
       }
       const holdExpires = merged.status === 'hold' ? (merged.holdExpires || null) : null;
 
+      // Extended workflow fields
+      const portfolioFeatures = Array.isArray(merged.portfolioFeatures) ? merged.portfolioFeatures : [];
+      const portfolioSent = merged.portfolioSent || null;
+      const janeappChecked = merged.janeappChecked || null;
+      const agreementSent = merged.agreementSent || null;
+      const agreementReceived = merged.agreementReceived || null;
+      const agreementFiled = merged.agreementFiled || null;
+      const commsLog = Array.isArray(merged.commsLog) ? merged.commsLog : [];
+
       const { rows } = await sql`
         UPDATE bookings SET
-          dates        = ${merged.dates},
-          slot_type    = ${merged.slotType},
-          renter_name  = ${merged.renterName.trim()},
-          contact_name = ${merged.contactName.trim()},
-          company      = ${(merged.company || '').trim()},
-          contact_info = ${merged.contactInfo.trim()},
-          rate_quoted  = ${merged.rateQuoted},
-          status       = ${merged.status},
-          hold_expires = ${holdExpires},
-          notes        = ${(merged.notes || '').trim()},
-          updated_at   = ${now},
-          updated_by   = ${user.username},
-          locked_at    = ${lockedAt},
-          locked_by    = ${lockedBy}
+          dates              = ${merged.dates},
+          slot_type          = ${merged.slotType},
+          renter_name        = ${merged.renterName.trim()},
+          contact_name       = ${merged.contactName.trim()},
+          company            = ${(merged.company || '').trim()},
+          contact_info       = ${merged.contactInfo.trim()},
+          rate_quoted        = ${merged.rateQuoted},
+          status             = ${merged.status},
+          hold_expires       = ${holdExpires},
+          notes              = ${(merged.notes || '').trim()},
+          updated_at         = ${now},
+          updated_by         = ${user.username},
+          locked_at          = ${lockedAt},
+          locked_by          = ${lockedBy},
+          portfolio_features = ${portfolioFeatures},
+          portfolio_sent     = ${JSON.stringify(portfolioSent)}::jsonb,
+          janeapp_checked    = ${JSON.stringify(janeappChecked)}::jsonb,
+          agreement_sent     = ${JSON.stringify(agreementSent)}::jsonb,
+          agreement_received = ${JSON.stringify(agreementReceived)}::jsonb,
+          agreement_filed    = ${JSON.stringify(agreementFiled)}::jsonb,
+          comms_log          = ${JSON.stringify(commsLog)}::jsonb
         WHERE id = ${id}
         RETURNING *;
       `;

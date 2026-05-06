@@ -1,0 +1,12 @@
+{
+  "name": "build-facility-tracking",
+  "version": "1.0.0",
+  "description": "BUILD Facility Course Tracking — Vercel-deployed booking & capacity dashboard",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@vercel/kv": "^2.0.0"
+  }
+}

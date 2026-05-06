@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BUILD Facility Course Tracking</title>
+<style>
+  :root {
+    --bg: #FDF6EE; --bg-card: #FFFFFF; --bg-hover: #FAF0E4;
+    --accent: #C67B3C; --accent-light: #E8A96A; --accent-dark: #9E5E28;
+    --text: #3D2E1F; --text-secondary: #7A6654; --text-light: #A8957F;
+    --border: #E8DDD0;
+    --green: #4F7A3D; --green-soft: #E5F0DC;
+    --amber: #B57A1F; --amber-soft: #FBEFD3;
+    --red: #A8442A; --red-soft: #F4DCD2;
+    --gold: #B89642; --gold-soft: #F7EFD0;
+    --blue: #3F5F88; --blue-soft: #DDE7F2;
+    --purple: #7A5BAB; --purple-soft: #E8DFF5;
+    --hold: #B57A1F; --hold-soft: #FBEFD3;
+    --locked: #3F5F88; --locked-soft: #DDE7F2;
+    --shadow: 0 2px 12px rgba(61,46,31,0.08);
+    --radius: 16px; --radius-sm: 10px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.55; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px 24px 48px; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 18px; flex-wrap: wrap; gap: 12px; }
+  .user-info { font-size: 12px; color: var(--text-light); }
+  .user-info strong { color: var(--text); }
+  .user-info button { margin-left: 10px; background: transparent; border: 1px solid var(--border); padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; color: var(--text-secondary); font-family: inherit; }
+  .user-info button:hover { background: var(--bg-hover); }
+  .header { text-align: center; padding: 8px 0 28px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+  .header h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.5px; }
+  .header .sub { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+  .header .stamp { font-size: 12px; color: var(--text-light); margin-top: 8px; font-style: italic; }
+
+  .toggle-row { display: flex; gap: 12px; margin-bottom: 22px; flex-wrap: wrap; }
+  .toggle-group { display: inline-flex; background: var(--bg-card); border: 1px solid var(--border); border-radius: 999px; padding: 4px; box-shadow: var(--shadow); }
+  .toggle-group .toggle-label { font-size: 11px; padding: 0 10px 0 14px; align-self: center; color: var(--text-light); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; }
+  .toggle-btn { border: none; background: transparent; padding: 8px 18px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--text-secondary); cursor: pointer; font-family: inherit; }
+  .toggle-btn.active { background: var(--accent); color: white; }
+  .toggle-btn[data-tenant="eim"].active { background: var(--purple); }
+
+  .panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px 22px; margin-bottom: 20px; }
+  .panel h2 { font-size: 17px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .panel h2 .count { background: var(--bg-hover); color: var(--accent-dark); font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px; margin-left: auto; }
+  .panel-sub { font-size: 13px; color: var(--text-secondary); margin-top: -8px; margin-bottom: 14px; line-height: 1.5; }
+
+  /* Ceiling */
+  .ceiling-panel { background: linear-gradient(135deg, var(--bg-card), #FFF9F0); border: 1px solid var(--accent-light); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px 26px; margin-bottom: 20px; }
+  .ceiling-h { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .ceiling-h h2 { font-size: 17px; font-weight: 700; }
+  .ceiling-h .formula { font-size: 12px; color: var(--text-light); font-style: italic; }
+  .ceiling-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 14px; }
+  .ceiling-hero { background: var(--accent); color: white; border-radius: var(--radius-sm); padding: 18px 20px; }
+  .ceiling-hero-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; color: rgba(255,255,255,0.85); font-weight: 600; }
+  .ceiling-hero-value { font-size: 38px; font-weight: 700; margin: 4px 0; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+  .ceiling-hero-sub { font-size: 12px; color: rgba(255,255,255,0.85); }
+  .ceiling-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; }
+  .ceiling-card .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); font-weight: 600; }
+  .ceiling-card .val { font-size: 22px; font-weight: 700; color: var(--accent-dark); margin: 4px 0 2px; font-variant-numeric: tabular-nums; }
+  .ceiling-card .sub { font-size: 11px; color: var(--text-secondary); }
+
+  .scenarios { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .scenario { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px 18px; }
+  .scenario.realistic { background: var(--amber-soft); border-color: var(--amber); }
+  .scenario .pct { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); }
+  .scenario.realistic .pct { color: var(--amber); }
+  .scenario .label { font-size: 14px; font-weight: 600; margin: 4px 0 8px; }
+  .scenario .total { font-size: 24px; font-weight: 700; color: var(--accent-dark); font-variant-numeric: tabular-nums; }
+  .scenario.realistic .total { color: var(--amber); }
+  .scenario .breakdown { font-size: 11px; color: var(--text-secondary); margin-top: 6px; line-height: 1.5; }
+  .scenario .gap { font-size: 11px; color: var(--text-light); margin-top: 6px; font-style: italic; }
+
+  /* Stale holds */
+  .stale-panel { background: var(--hold-soft); border: 1px solid var(--hold); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 20px; }
+  .stale-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+  .stale-h h2 { font-size: 16px; font-weight: 700; color: var(--hold); }
+  .stale-list { list-style: none; }
+  .stale-item { background: var(--bg-card); border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .stale-item:last-child { margin-bottom: 0; }
+  .stale-item .si-info { font-size: 13px; flex: 1; min-width: 200px; }
+  .stale-item .si-info strong { color: var(--text); }
+  .stale-item .si-meta { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+  .stale-actions { display: flex; gap: 6px; }
+  .btn-mini { font-size: 11px; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); cursor: pointer; font-family: inherit; }
+  .btn-mini.primary { background: var(--accent); color: white; border-color: var(--accent); }
+  .btn-mini.primary:hover { background: var(--accent-dark); }
+  .btn-mini:hover { background: var(--bg-hover); }
+
+  /* Pace */
+  .pace-row { display: grid; grid-template-columns: 90px 1fr auto auto; gap: 14px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .pace-row:last-child { border-bottom: none; }
+  .pace-row.current { background: var(--bg-hover); }
+  .pace-month { font-weight: 700; }
+  .pace-month .year-tag { font-size: 10px; color: var(--text-light); font-weight: 400; margin-left: 4px; }
+  .pace-bar-wrap { background: var(--bg-hover); border-radius: 8px; height: 20px; overflow: hidden; position: relative; }
+  .pace-bar { height: 100%; background: var(--amber); border-radius: 8px; transition: width 0.4s; }
+  .pace-bar.full { background: var(--green); }
+  .pace-bar.close { background: var(--gold); }
+  .pace-bar-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; font-weight: 600; color: var(--text); white-space: nowrap; }
+  .pace-need { font-size: 12px; color: var(--text-secondary); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .pace-need strong { color: var(--text); }
+  .pace-revenue { font-size: 13px; font-weight: 700; color: var(--accent-dark); font-variant-numeric: tabular-nums; }
+
+  /* Mix */
+  .mix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: center; }
+  @media (max-width: 700px) { .mix-grid { grid-template-columns: 1fr; } }
+  .mix-bars { display: flex; flex-direction: column; gap: 12px; }
+  .mix-row-h { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 13px; }
+  .mix-row-amount { color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+  .mix-bar-wrap { background: var(--bg-hover); height: 14px; border-radius: 4px; overflow: hidden; }
+  .mix-bar { height: 100%; transition: width 0.4s; }
+  .mix-bar.weekend { background: var(--accent); }
+  .mix-bar.weeknight { background: var(--blue); }
+  .mix-summary { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; font-size: 13px; line-height: 1.6; color: var(--text-secondary); }
+  .mix-summary strong { color: var(--text); }
+
+  /* Best months */
+  .best-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .best-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; }
+  .best-card.top { background: var(--gold-soft); border-color: var(--gold); }
+  .best-month { font-size: 14px; font-weight: 700; }
+  .best-card.top .best-month { color: var(--gold); }
+  .best-meta { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+  .best-potential { font-size: 18px; font-weight: 700; color: var(--accent-dark); margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .best-card.top .best-potential { color: var(--gold); }
+
+  /* Calendar */
+  .cal-controls { margin-bottom: 12px; }
+  .cal-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); }
+  .legend-dot { width: 11px; height: 11px; border-radius: 3px; flex-shrink: 0; }
+  .cal-month-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  @media (max-width: 760px) { .cal-month-grid { grid-template-columns: 1fr; } }
+  .cal-month { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; }
+  .cal-month-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .cal-month-name { font-size: 14px; font-weight: 700; }
+  .cal-month-rev { font-size: 12px; color: var(--accent-dark); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; font-size: 9px; color: var(--text-light); text-align: center; margin-bottom: 4px; font-weight: 600; }
+  .cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .cal-day { aspect-ratio: 1; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: var(--text-secondary); position: relative; transition: transform 0.1s; }
+  .cal-day.empty { background: transparent; }
+  .cal-day.weekday { background: var(--bg-card); border: 1px solid var(--border); cursor: pointer; }
+  .cal-day.weekend { background: var(--green-soft); border: 1px solid var(--green); color: var(--green); cursor: pointer; }
+  .cal-day.eim { background: var(--purple-soft); border: 1px solid var(--purple); color: var(--purple); cursor: help; }
+  .cal-day.holiday { background: var(--red-soft); border: 1px solid var(--red); color: var(--red); cursor: help; }
+  .cal-day.holiday-weekend { background: repeating-linear-gradient(45deg, var(--red-soft), var(--red-soft) 4px, var(--bg) 4px, var(--bg) 8px); border: 1px solid var(--red); color: var(--red); cursor: help; }
+  .cal-day.hold { background: var(--hold-soft); border: 1px solid var(--hold); color: var(--hold); cursor: pointer; }
+  .cal-day.locked { background: var(--locked-soft); border: 1px solid var(--locked); color: var(--locked); cursor: pointer; }
+  .cal-day.selected { box-shadow: 0 0 0 3px var(--accent); transform: scale(1.1); z-index: 5; }
+  .cal-day.past { opacity: 0.35; cursor: not-allowed !important; }
+  .cal-day.today { box-shadow: 0 0 0 2px var(--accent); }
+  .cal-day:hover:not(.empty):not(.past) { transform: scale(1.15); z-index: 5; }
+  .cal-day .tip { display: none; position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%); background: var(--text); color: white; font-size: 11px; padding: 6px 10px; border-radius: 6px; white-space: nowrap; z-index: 10; pointer-events: none; font-weight: 400; }
+  .cal-day:hover .tip { display: block; }
+
+  /* Selection toolbar above calendar */
+  .selection-bar { background: var(--accent); color: white; border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 14px; display: none; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .selection-bar.shown { display: flex; }
+  .selection-bar .info { font-size: 13px; }
+  .selection-bar .info strong { font-weight: 700; }
+  .sb-btn { padding: 7px 14px; border-radius: 8px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .sb-btn.primary { background: white; color: var(--accent-dark); }
+  .sb-btn.secondary { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); }
+  .sb-btn:hover { opacity: 0.9; }
+
+  /* Modal */
+  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(61,46,31,0.55); backdrop-filter: blur(3px); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+  .modal-backdrop.shown { display: flex; }
+  .modal { background: var(--bg-card); border-radius: var(--radius); box-shadow: 0 12px 48px rgba(61,46,31,0.25); max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto; }
+  .modal-h { padding: 18px 22px 12px; border-bottom: 1px solid var(--border); }
+  .modal-h h2 { font-size: 18px; font-weight: 700; }
+  .modal-h .sub { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+  .modal-body { padding: 18px 22px; }
+  .modal-actions { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+  .modal-actions .left { margin-right: auto; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 11px; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+  .field label .req { color: var(--red); }
+  .field input, .field textarea, .field select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; color: var(--text); background: var(--bg); }
+  .field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--accent); }
+  .field textarea { resize: vertical; min-height: 60px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .dates-display { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 12px; color: var(--text-secondary); }
+  .dates-display strong { color: var(--text); }
+  .status-toggle { display: inline-flex; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 3px; }
+  .status-toggle button { background: transparent; border: none; padding: 6px 14px; border-radius: 5px; font-size: 12px; font-weight: 600; color: var(--text-secondary); cursor: pointer; font-family: inherit; }
+  .status-toggle button.active { background: var(--accent); color: white; }
+  .modal-actions .btn { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .modal-actions .btn:hover { background: var(--bg-hover); }
+  .modal-actions .btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+  .modal-actions .btn.primary:hover { background: var(--accent-dark); }
+  .modal-actions .btn.danger { background: var(--red-soft); color: var(--red); border-color: var(--red); }
+  .modal-actions .btn.danger:hover { background: var(--red); color: white; }
+  .audit { font-size: 11px; color: var(--text-light); margin-top: 8px; line-height: 1.5; }
+  .audit strong { color: var(--text-secondary); }
+
+  /* EIM view bits (preserved) */
+  .revenue-panel { background: linear-gradient(135deg, var(--bg-card), #FFF9F0); border: 1px solid var(--accent-light); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px 24px; margin-bottom: 20px; }
+  .revenue-h { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .revenue-h h2 { font-size: 17px; font-weight: 700; }
+  .revenue-h .formula { font-size: 12px; color: var(--text-light); font-style: italic; }
+  .revenue-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .rev-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; }
+  .rev-card.hero { background: var(--accent); border-color: var(--accent-dark); color: white; }
+  .rev-card.hero .rev-label { color: rgba(255,255,255,0.85); }
+  .rev-card.hero .rev-value { color: white; }
+  .rev-card.bonus { background: var(--gold-soft); border-color: var(--gold); }
+  .rev-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-light); font-weight: 600; }
+  .rev-value { font-size: 26px; font-weight: 700; color: var(--accent-dark); margin: 4px 0 2px; font-variant-numeric: tabular-nums; }
+  .rev-card.bonus .rev-value { color: var(--gold); }
+  .rev-sub { font-size: 12px; color: var(--text-secondary); }
+  .rev-card.hero .rev-sub { color: rgba(255,255,255,0.85); }
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px 20px; }
+  .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-light); font-weight: 600; }
+  .kpi-value { font-size: 30px; font-weight: 700; color: var(--accent-dark); margin: 4px 0 2px; font-variant-numeric: tabular-nums; }
+  .kpi-sub { font-size: 12px; color: var(--text-secondary); }
+
+  /* Bookings table view */
+  .bookings-list { display: flex; flex-direction: column; gap: 10px; }
+  .booking-row { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; cursor: pointer; transition: all 0.15s; }
+  .booking-row:hover { background: var(--bg-hover); }
+  .booking-row.hold { border-left: 3px solid var(--hold); }
+  .booking-row.locked { border-left: 3px solid var(--locked); }
+  .booking-row-h { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+  .br-renter { font-size: 14px; font-weight: 700; }
+  .br-rate { font-size: 14px; font-weight: 700; color: var(--accent-dark); font-variant-numeric: tabular-nums; }
+  .br-meta { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+  .br-status { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.6px; margin-left: 8px; }
+  .br-status.hold { background: var(--hold-soft); color: var(--hold); }
+  .br-status.locked { background: var(--locked-soft); color: var(--locked); }
+
+  .tenant-section.hidden { display: none; }
+  .footer { text-align: center; padding-top: 24px; margin-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-light); }
+  .loading { text-align: center; padding: 60px 20px; color: var(--text-light); font-style: italic; }
+  .error-banner { background: var(--red-soft); border: 1px solid var(--red); color: var(--red); padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 14px; font-size: 13px; }
+
+  @media (max-width: 900px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .scenarios { grid-template-columns: 1fr; }
+    .ceiling-grid { grid-template-columns: 1fr; }
+    .revenue-grid { grid-template-columns: repeat(2, 1fr); }
+    .field-row { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 540px) {
+    .container { padding: 14px 14px 32px; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .revenue-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="topbar">
+    <div></div>
+    <div class="user-info">Signed in as <strong id="currentUser">…</strong> <button id="logoutBtn">Sign out</button></div>
+  </div>
+
+  <div class="header">
+    <h1>BUILD Facility Course Tracking</h1>
+    <p class="sub">Booked tenants · available capacity · revenue projections for 165 McCaslin Blvd</p>
+    <p class="stamp" id="stamp">Loading…</p>
+  </div>
+
+  <div class="toggle-row">
+    <div class="toggle-group">
+      <span class="toggle-label">View</span>
+      <button class="toggle-btn active" data-tenant="capacity">Capacity & projections</button>
+      <button class="toggle-btn" data-tenant="bookings">Bookings list</button>
+      <button class="toggle-btn" data-tenant="eim">EIM</button>
+    </div>
+    <div class="toggle-group">
+      <span class="toggle-label">Year</span>
+      <button class="toggle-btn active" data-year="2026">2026</button>
+      <button class="toggle-btn" data-year="2025">2025</button>
+    </div>
+  </div>
+
+  <div id="errorBanner" class="error-banner" style="display:none;"></div>
+
+  <!-- ============ CAPACITY VIEW ============ -->
+  <div class="tenant-section" id="capacityView">
+
+    <div class="ceiling-panel">
+      <div class="ceiling-h">
+        <h2>🏛 Theoretical revenue ceiling <span style="font-weight:400;color:var(--text-light);" id="ceilingYear">2026</span></h2>
+        <span class="formula">Available capacity × full pricing</span>
+      </div>
+      <div class="ceiling-grid">
+        <div class="ceiling-hero">
+          <div class="ceiling-hero-label">Total potential — sellable slots</div>
+          <div class="ceiling-hero-value" id="ceilingTotal">—</div>
+          <div class="ceiling-hero-sub" id="ceilingTotalSub">if every available slot were booked at full price</div>
+        </div>
+        <div class="ceiling-card">
+          <div class="lbl">Weekend days</div>
+          <div class="val" id="ceilingWeekend">—</div>
+          <div class="sub" id="ceilingWeekendSub">×$675/day</div>
+        </div>
+        <div class="ceiling-card">
+          <div class="lbl">Weeknight slots</div>
+          <div class="val" id="ceilingWeeknight">—</div>
+          <div class="sub" id="ceilingWeeknightSub">×$65/hr × 4hr (6-10pm)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stale holds panel — only shows when there are stale holds -->
+    <div id="stalePanelWrap"></div>
+
+    <div class="panel">
+      <h2>📊 Three scenario projections — EIM booked + new tenant bookings</h2>
+      <p class="panel-sub">Each scenario = your existing EIM revenue PLUS what you'd earn by filling unbooked capacity at the given utilization rate.</p>
+      <div class="scenarios">
+        <div class="scenario">
+          <div class="pct">Conservative — 25% fill of new capacity</div>
+          <div class="label">If I barely market it</div>
+          <div class="total" id="scenLow">—</div>
+          <div class="breakdown" id="scenLowBreak">—</div>
+          <div class="gap">Floor: minimum to expect with passive effort</div>
+        </div>
+        <div class="scenario realistic">
+          <div class="pct">Realistic — 50% fill of new capacity</div>
+          <div class="label">If I market consistently</div>
+          <div class="total" id="scenMid">—</div>
+          <div class="breakdown" id="scenMidBreak">—</div>
+          <div class="gap">The number to plan against</div>
+        </div>
+        <div class="scenario">
+          <div class="pct">Aspirational — 75% fill of new capacity</div>
+          <div class="label">If I really hustle</div>
+          <div class="total" id="scenHigh">—</div>
+          <div class="breakdown" id="scenHighBreak">—</div>
+          <div class="gap">Ceiling to reach for, not promise</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>🎯 Monthly booking pace <span style="font-size:13px;color:var(--text-light);font-weight:400;">to hit 50% realistic scenario</span></h2>
+      <p class="panel-sub">Each month shows what you've already booked (EIM + locked + holds) vs. what you'd need to hit the realistic target.</p>
+      <div id="paceContainer"></div>
+    </div>
+
+    <div class="panel">
+      <h2>⚖️ Revenue mix — weekend vs. weeknight</h2>
+      <div class="mix-grid">
+        <div class="mix-bars">
+          <div>
+            <div class="mix-row-h"><span><strong>🏛 Weekend revenue (booked)</strong></span><span class="mix-row-amount" id="mixWeekendAmt">—</span></div>
+            <div class="mix-bar-wrap"><div class="mix-bar weekend" id="mixWeekendBar" style="width:0%;"></div></div>
+          </div>
+          <div>
+            <div class="mix-row-h"><span><strong>🌙 Weeknight revenue (booked)</strong></span><span class="mix-row-amount" id="mixWeeknightAmt">—</span></div>
+            <div class="mix-bar-wrap"><div class="mix-bar weeknight" id="mixWeeknightBar" style="width:0%;"></div></div>
+          </div>
+        </div>
+        <div class="mix-summary" id="mixSummary">—</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>🏆 Highest-potential months <span style="font-size:13px;color:var(--text-light);font-weight:400;">where to focus marketing</span></h2>
+      <div class="best-grid" id="bestMonths"></div>
+    </div>
+
+    <div class="panel">
+      <h2>📅 Capacity calendar <span style="font-size:13px;color:var(--text-light);font-weight:400;">click any available day to book</span></h2>
+      <p class="panel-sub">Click a green or white square to start a new booking. Click an existing hold/locked booking to view or edit it.</p>
+
+      <div id="selectionBar" class="selection-bar">
+        <div class="info"><strong id="selCount">0</strong> day(s) selected · <span id="selRate">$0</span> at full rate</div>
+        <div>
+          <button class="sb-btn primary" id="newBookingBtn">+ New booking</button>
+          <button class="sb-btn secondary" id="clearSelBtn">Clear</button>
+        </div>
+      </div>
+
+      <div class="cal-controls">
+        <div class="cal-legend">
+          <div class="legend-item"><span class="legend-dot" style="background:var(--green-soft);border:1px solid var(--green);"></span>Available weekend</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--bg-card);border:1px solid var(--border);"></span>Available weeknight</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--purple-soft);border:1px solid var(--purple);"></span>EIM</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--hold-soft);border:1px solid var(--hold);"></span>On hold</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--locked-soft);border:1px solid var(--locked);"></span>Locked in</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--red-soft);border:1px solid var(--red);"></span>Holiday</div>
+        </div>
+      </div>
+      <div class="cal-month-grid" id="calMonthGrid"></div>
+    </div>
+
+  </div>
+
+  <!-- ============ BOOKINGS LIST VIEW ============ -->
+  <div class="tenant-section hidden" id="bookingsView">
+    <div class="panel">
+      <h2>📋 All bookings <span class="count" id="bookingsCount">0</span></h2>
+      <p class="panel-sub">All non-EIM facility bookings. Click any row to edit.</p>
+      <div class="bookings-list" id="bookingsList"></div>
+    </div>
+  </div>
+
+  <!-- ============ EIM VIEW ============ -->
+  <div class="tenant-section hidden" id="eimView">
+    <div class="revenue-panel">
+      <div class="revenue-h">
+        <h2>💰 EIM facility fee revenue <span style="font-weight:400;color:var(--text-light);" id="revYearLabel">2026</span></h2>
+        <span class="formula">Days × $675 + $650 if 31+ participants</span>
+      </div>
+      <div class="revenue-grid">
+        <div class="rev-card hero">
+          <div class="rev-label">YTD revenue</div>
+          <div class="rev-value" id="revYTD">—</div>
+          <div class="rev-sub" id="revYTDSub">from completed classes</div>
+        </div>
+        <div class="rev-card">
+          <div class="rev-label">Booked / projected</div>
+          <div class="rev-value" id="revBooked">—</div>
+          <div class="rev-sub" id="revBookedSub">remaining classes scheduled</div>
+        </div>
+        <div class="rev-card">
+          <div class="rev-label">Full-year forecast</div>
+          <div class="rev-value" id="revForecast">—</div>
+          <div class="rev-sub">YTD + booked</div>
+        </div>
+        <div class="rev-card bonus">
+          <div class="rev-label">🏆 Bonus classes earned</div>
+          <div class="rev-value" id="revBonus">—</div>
+          <div class="rev-sub" id="revBonusSub">classes 31+ participants</div>
+        </div>
+      </div>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">Classes scheduled</div><div class="kpi-value" id="kpiTotal">—</div><div class="kpi-sub" id="kpiTotalSub">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">Participants</div><div class="kpi-value" id="kpiPart">—</div><div class="kpi-sub" id="kpiPartSub">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">Snack reimbursements</div><div class="kpi-value" id="kpiSnack">—</div><div class="kpi-sub" id="kpiSnackSub">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">Avg participants / class</div><div class="kpi-value" id="kpiAvg">—</div><div class="kpi-sub">across completed classes</div></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Pricing: weekend $675/day · weeknight $65/hr × 4hr · Holidays from US federal calendar · Production deployment v1.0
+  </div>
+
+</div>
+
+<!-- ============ BOOKING MODAL ============ -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" id="modal">
+    <div class="modal-h">
+      <h2 id="modalTitle">New booking</h2>
+      <p class="sub" id="modalSub">Click outside or press Escape to cancel</p>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Selected dates</label>
+        <div class="dates-display" id="modalDates">—</div>
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <div class="status-toggle">
+          <button type="button" data-status="hold" class="active" id="statusHold">On hold</button>
+          <button type="button" data-status="locked" id="statusLocked">Locked in</button>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Renter / event name <span class="req">*</span></label>
+          <input type="text" id="fRenterName" maxlength="200">
+        </div>
+        <div class="field">
+          <label>Company</label>
+          <input type="text" id="fCompany" maxlength="200">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Contact name <span class="req">*</span></label>
+          <input type="text" id="fContactName" maxlength="200">
+        </div>
+        <div class="field">
+          <label>Contact info <span class="req">*</span></label>
+          <input type="text" id="fContactInfo" placeholder="email or phone" maxlength="500">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Rate quoted (total $) <span class="req">*</span></label>
+          <input type="number" id="fRate" min="0" step="1">
+        </div>
+        <div class="field" id="holdExpiresField">
+          <label>Hold expires on</label>
+          <input type="date" id="fHoldExpires">
+        </div>
+      </div>
+      <div class="field">
+        <label>Notes</label>
+        <textarea id="fNotes" maxlength="2000"></textarea>
+      </div>
+      <div class="audit" id="auditTrail"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn danger left" id="deleteBtn" style="display:none;">Delete</button>
+      <button class="btn" id="cancelBtn">Cancel</button>
+      <button class="btn primary" id="saveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============= EIM CLASS DATA (snapshot) =============
+const EIM_DATA = {
+  classes2026: [
+    { date:'9-Jan',     start:'2026-01-09', end:'2026-01-11', days:3, name:'FDN Level 1', part:22, snack:67.86,  sent:'yes', recv:'yes', fee:'yes' },
+    { date:'6-Feb',     start:'2026-02-06', end:'2026-02-08', days:3, name:'FDN Level 1', part:27, snack:85.64,  sent:'yes', recv:'yes', fee:'yes' },
+    { date:'13-Feb',    start:'2026-02-13', end:'2026-02-15', days:3, name:'FDN Level 2', part:27, snack:150.17, sent:'yes', recv:'yes', fee:'yes' },
+    { date:'21-Feb',    start:'2026-02-21', end:'2026-02-22', days:2, name:'Management of Cervical and Thoracic Disorders', part:8, snack:40.21, sent:'yes', recv:'yes', fee:'pending' },
+    { date:'3/6-3/8',   start:'2026-03-06', end:'2026-03-08', days:3, name:'FDN: Clinical Integration', part:8, snack:39.62,  sent:'yes', recv:'yes', fee:'in the mail' },
+    { date:'3/20-3/22', start:'2026-03-20', end:'2026-03-22', days:3, name:'FDN Level 1', part:28, snack:53.25,  sent:'yes', recv:'yes', fee:'yes' },
+    { date:'4/11-4/12', start:'2026-04-11', end:'2026-04-12', days:2, name:'UE Disorders - Weekend Intensive', part:12, snack:63.97, sent:'yes', recv:'yes', fee:'in the mail' },
+    { date:'4/24-4/26', start:'2026-04-24', end:'2026-04-26', days:3, name:'FDN Level 1', part:23, snack:null, sent:'', recv:'', fee:'' },
+    { date:'5/15-5/17', start:'2026-05-15', end:'2026-05-17', days:3, name:'FDN Level 1', part:null, snack:null, sent:'', recv:'', fee:'' },
+    { date:'5/31-6/1',  start:'2026-05-31', end:'2026-06-01', days:2, name:'Spinal Manipulation', part:null, snack:null, sent:'', recv:'', fee:'' },
+    { date:'6/5-6/7',   start:'2026-06-05', end:'2026-06-07', days:3, name:'FDN Level 2', part:null, snack:null, sent:'', recv:'', fee:'' },
+    { date:'6/26-6/28', start:'2026-06-26', end:'2026-06-28', days:3, name:'FDN Level 1', part:null, snack:null, sent:'', recv:'', fee:'' },
+    { date:'7/18-7/19', start:'2026-07-18', end:'2026-07-19', days:2, name:'Emergency Medical Response', part:null, snack:null, sent:'', recv:'', fee:'' },
+    { date:'8/15-8/16', start:'2026-08-15', end:'2026-08-16', days:2, name:'Lumbopelvic Disorders', part:null, snack:null, sent:'', recv:'', fee:'' },
+    { date:'8/21-8/23', start:'2026-08-21', end:'2026-08-23', days:3, name:'FDN: Clinical Integration', part:null, snack:null, sent:'', recv:'', fee:'' },
+    { date:'8/29-8/30', start:'2026-08-29', end:'2026-08-30', days:2, name:'FDN Level 2', part:null, snack:null, sent:'', recv:'', fee:'' },
+    { date:'9/11-9/13', start:'2026-09-11', end:'2026-09-13', days:3, name:'FDN Level 1', part:null, snack:null, sent:'', recv:'', fee:'' },
+    { date:'10/3-10/4', start:'2026-10-03', end:'2026-10-04', days:2, name:'Sports Competencies', part:null, snack:null, sent:'', recv:'', fee:'' },
+    { date:'10/16-10/18', start:'2026-10-16', end:'2026-10-18', days:3, name:'FDN Level 1', part:null, snack:null, sent:'', recv:'', fee:'' },
+    { date:'10/24-10/26', start:'2026-10-24', end:'2026-10-26', days:3, name:'Lower Extremity Disorders', part:null, snack:null, sent:'', recv:'', fee:'' },
+    { date:'10/31-11/1', start:'2026-10-31', end:'2026-11-01', days:3, name:'FDN Level 2', part:null, snack:null, sent:'', recv:'', fee:'' },
+    { date:'11/13-11/15', start:'2026-11-13', end:'2026-11-15', days:3, name:'FDN Level 1', part:null, snack:null, sent:'', recv:'', fee:'' },
+    { date:'12/11-12/13', start:'2026-12-11', end:'2026-12-13', days:3, name:'FDN Level 1', part:null, snack:null, sent:'', recv:'', fee:'' }
+  ],
+  classes2025: []
+};
+
+// ============= CONSTANTS =============
+const FEE_PER_DAY = 675;
+const BONUS_AMOUNT = 650;
+const BONUS_THRESHOLD = 30;
+const WEEKNIGHT_HOURLY = 65;
+const WEEKNIGHT_HOURS = 4;
+const WEEKNIGHT_MAX_REVENUE = WEEKNIGHT_HOURLY * WEEKNIGHT_HOURS;
+const $ = (id) => document.getElementById(id);
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+const TODAY_STR = TODAY.toISOString().slice(0,10);
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTHS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+// ============= STATE =============
+let currentYear = '2026';
+let currentTenant = 'capacity';
+let currentUser = null;
+let bookings = [];
+let selectedDates = new Set();
+let editingBookingId = null;
+let editingStatus = 'hold';
+
+// ============= UTILITIES =============
+function fmtMoney(v) { if (v === null || v === undefined) return '—'; return '$' + v.toFixed(2); }
+function fmtMoneyWhole(v) { return '$' + Math.round(v).toLocaleString(); }
+function fmtMoneyK(v) { if (v >= 1000) return '$' + (v/1000).toFixed(1) + 'k'; return '$' + Math.round(v); }
+function showError(msg) { const el = $('errorBanner'); el.textContent = msg; el.style.display = 'block'; setTimeout(() => el.style.display = 'none', 5000); }
+
+// ============= AUTH =============
+async function checkAuth() {
+  try {
+    const r = await fetch('/api/auth');
+    const d = await r.json();
+    if (d.ok) { currentUser = d.username; $('currentUser').textContent = currentUser; return true; }
+  } catch {}
+  window.location.href = '/login';
+  return false;
+}
+$('logoutBtn').addEventListener('click', async () => {
+  await fetch('/api/auth', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({action:'logout'}) });
+  window.location.href = '/login';
+});
+
+// ============= API CALLS =============
+async function fetchBookings() {
+  try {
+    const r = await fetch('/api/bookings');
+    if (!r.ok) throw new Error('Failed to load bookings');
+    const d = await r.json();
+    bookings = d.bookings || [];
+  } catch (e) {
+    showError('Could not load bookings: ' + e.message);
+    bookings = [];
+  }
+}
+async function saveBooking(payload) {
+  const method = payload.id ? 'PUT' : 'POST';
+  const r = await fetch('/api/bookings', { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  const d = await r.json();
+  if (!r.ok || !d.ok) throw new Error((d.errors && d.errors.join(', ')) || d.error || 'save_failed');
+  return d.booking;
+}
+async function deleteBooking(id) {
+  const r = await fetch('/api/bookings', { method: 'DELETE', headers: {'Content-Type':'application/json'}, body: JSON.stringify({id}) });
+  const d = await r.json();
+  if (!r.ok || !d.ok) throw new Error(d.error || 'delete_failed');
+}
+
+// ============= HOLIDAYS =============
+function nthWeekday(year, month, weekday, n) {
+  const d = new Date(year, month, 1); let count = 0;
+  while (d.getMonth() === month) { if (d.getDay() === weekday) { count++; if (count === n) return d.toISOString().slice(0,10); } d.setDate(d.getDate()+1); }
+  return null;
+}
+function lastWeekday(year, month, weekday) { const d = new Date(year, month+1, 0); while (d.getDay() !== weekday) d.setDate(d.getDate()-1); return d.toISOString().slice(0,10); }
+function getHolidays(year) {
+  return [
+    { date: year+'-01-01', name: "New Year's Day", killsWeekend: true },
+    { date: nthWeekday(year, 0, 1, 3), name: 'MLK Day', killsWeekend: false },
+    { date: nthWeekday(year, 1, 1, 3), name: "Presidents' Day", killsWeekend: false },
+    { date: lastWeekday(year, 4, 1), name: 'Memorial Day', killsWeekend: true },
+    { date: year+'-06-19', name: 'Juneteenth', killsWeekend: false },
+    { date: year+'-07-04', name: 'Independence Day', killsWeekend: true },
+    { date: nthWeekday(year, 8, 1, 1), name: 'Labor Day', killsWeekend: true },
+    { date: nthWeekday(year, 9, 1, 2), name: 'Columbus Day', killsWeekend: false },
+    { date: year+'-11-11', name: 'Veterans Day', killsWeekend: false },
+    { date: nthWeekday(year, 10, 4, 4), name: 'Thanksgiving', killsWeekend: true },
+    { date: year+'-12-24', name: 'Christmas Eve', killsWeekend: true },
+    { date: year+'-12-25', name: 'Christmas Day', killsWeekend: true },
+    { date: year+'-12-31', name: "New Year's Eve", killsWeekend: true }
+  ];
+}
+function addDays(dateStr, n) { const d = new Date(dateStr+'T00:00:00'); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+function buildDeadDateSet(year) {
+  const dead = new Map();
+  getHolidays(year).forEach(h => {
+    if (!h.date) return;
+    dead.set(h.date, h.name);
+    if (h.killsWeekend) {
+      const d = new Date(h.date+'T00:00:00');
+      const dow = d.getDay();
+      if (dow === 5) { dead.set(addDays(h.date, 1), h.name+' weekend'); dead.set(addDays(h.date, 2), h.name+' weekend'); }
+      else if (dow === 1) { dead.set(addDays(h.date, -1), h.name+' weekend'); dead.set(addDays(h.date, -2), h.name+' weekend'); }
+      else if (dow === 4) { dead.set(addDays(h.date, 1), h.name+' weekend'); dead.set(addDays(h.date, 2), h.name+' weekend'); dead.set(addDays(h.date, 3), h.name+' weekend'); }
+      else if (dow === 6) dead.set(addDays(h.date, 1), h.name+' weekend');
+      else if (dow === 0) dead.set(addDays(h.date, -1), h.name+' weekend');
+    }
+  });
+  return dead;
+}
+
+// ============= EIM HELPERS =============
+function getEimClasses(year) { return year === '2026' ? EIM_DATA.classes2026 : EIM_DATA.classes2025; }
+function getEimBookedDates(year) {
+  const booked = new Map();
+  getEimClasses(year).forEach(c => {
+    if (c.cancelled) return;
+    let d = new Date(c.start+'T00:00:00');
+    const end = new Date(c.end+'T00:00:00');
+    while (d <= end) { booked.set(d.toISOString().slice(0,10), c.name); d.setDate(d.getDate()+1); }
+  });
+  return booked;
+}
+function isUpcoming(c) { if (c.cancelled) return false; return new Date(c.start+'T00:00:00') >= TODAY; }
+function isPast(c) { return new Date(c.start+'T00:00:00') < TODAY; }
+function computeEimFee(c) { if (c.cancelled) return {base:0,bonus:0,total:0,qualified:false}; const base = c.days*FEE_PER_DAY; const qualified = c.part !== null && c.part > BONUS_THRESHOLD; const bonus = qualified ? BONUS_AMOUNT : 0; return {base,bonus,total:base+bonus,qualified}; }
+
+// ============= BOOKING DATE INDEX =============
+// Maps date string -> booking object (for the current year)
+function getBookingDateMap(year) {
+  const map = new Map();
+  bookings.forEach(b => {
+    b.dates.forEach(d => {
+      if (d.startsWith(year)) map.set(d, b);
+    });
+  });
+  return map;
+}
+
+// ============= CAPACITY ENGINE =============
+function buildCapacity(year) {
+  const result = {
+    year,
+    days: [],
+    byMonth: Array.from({length:12}, () => ({ availWeekend:0, availWeeknight:0, eimWeekend:0, eimWeeknight:0, holiday:0, holidayWeekend:0, pastWeekend:0, pastWeeknight:0, maxRevenue:0, bookedRevenue:0, holdRevenue:0, lockedRevenue:0 })),
+    totals: { availWeekendDays:0, availWeeknightSlots:0, eimWeekendDays:0, eimWeeknightDays:0, maxWeekendRevenue:0, maxWeeknightRevenue:0, eimBookedRevenue:0, holdRevenue:0, lockedRevenue:0 }
+  };
+
+  const dead = buildDeadDateSet(parseInt(year,10));
+  const eimBooked = getEimBookedDates(year);
+  const bookingMap = getBookingDateMap(year);
+
+  let d = new Date(parseInt(year,10), 0, 1);
+  const endOfYear = new Date(parseInt(year,10), 11, 31);
+  while (d <= endOfYear) {
+    const dateStr = d.toISOString().slice(0,10);
+    const dow = d.getDay();
+    const month = d.getMonth();
+    const isWeekend = (dow === 0 || dow === 6);
+    const isPastDay = dateStr < TODAY_STR;
+    const isHoliday = dead.has(dateStr);
+    const holidayName = isHoliday ? dead.get(dateStr) : null;
+    const isEim = eimBooked.has(dateStr);
+    const userBooking = bookingMap.get(dateStr);
+
+    let status, label, revenue;
+    if (userBooking) {
+      status = userBooking.status; // 'hold' or 'locked'
+      label = userBooking.renterName + (userBooking.status === 'hold' ? ' (on hold)' : ' (locked)');
+      revenue = isWeekend ? FEE_PER_DAY : WEEKNIGHT_MAX_REVENUE;
+    } else if (isHoliday && isWeekend) { status = 'holiday-weekend'; label = holidayName; revenue = 0; }
+    else if (isHoliday) { status = 'holiday'; label = holidayName; revenue = 0; }
+    else if (isEim) { status = 'eim'; label = 'EIM: ' + eimBooked.get(dateStr); revenue = isWeekend ? FEE_PER_DAY : WEEKNIGHT_MAX_REVENUE; }
+    else if (isWeekend) { status = 'weekend'; label = 'Available weekend'; revenue = FEE_PER_DAY; }
+    else { status = 'weekday'; label = 'Available weeknight'; revenue = WEEKNIGHT_MAX_REVENUE; }
+
+    const finalStatus = isPastDay ? status + ' past' : status;
+    result.days.push({ date: dateStr, dow, month, isWeekend, isPastDay, status: finalStatus, label, revenue, booking: userBooking });
+
+    if (!isPastDay) {
+      if (status === 'weekend') { result.byMonth[month].availWeekend++; result.byMonth[month].maxRevenue += FEE_PER_DAY; result.totals.availWeekendDays++; result.totals.maxWeekendRevenue += FEE_PER_DAY; }
+      else if (status === 'weekday') { result.byMonth[month].availWeeknight++; result.byMonth[month].maxRevenue += WEEKNIGHT_MAX_REVENUE; result.totals.availWeeknightSlots++; result.totals.maxWeeknightRevenue += WEEKNIGHT_MAX_REVENUE; }
+      else if (status === 'eim') { if (isWeekend) { result.byMonth[month].eimWeekend++; result.totals.eimWeekendDays++; } else { result.byMonth[month].eimWeeknight++; result.totals.eimWeeknightDays++; } }
+      else if (status === 'holiday') result.byMonth[month].holiday++;
+      else if (status === 'holiday-weekend') result.byMonth[month].holidayWeekend++;
+    } else {
+      if (isWeekend) result.byMonth[month].pastWeekend++; else result.byMonth[month].pastWeeknight++;
+    }
+    d.setDate(d.getDate()+1);
+  }
+
+  result.totals.eimBookedRevenue = getEimClasses(year).reduce((s,c) => s + computeEimFee(c).total, 0);
+
+  // User booking revenue (rate quoted, divided across dates)
+  bookings.forEach(b => {
+    if (!b.dates.some(d => d.startsWith(year))) return;
+    const yearDates = b.dates.filter(d => d.startsWith(year));
+    const ratePerDate = yearDates.length > 0 ? b.rateQuoted / yearDates.length : 0;
+    yearDates.forEach(d => {
+      const m = parseInt(d.slice(5,7),10) - 1;
+      if (b.status === 'hold') { result.byMonth[m].holdRevenue += ratePerDate; result.totals.holdRevenue += ratePerDate; }
+      else { result.byMonth[m].lockedRevenue += ratePerDate; result.totals.lockedRevenue += ratePerDate; }
+    });
+  });
+
+  return result;
+}
+
+// ============= STALE HOLDS =============
+function getStaleHolds() {
+  return bookings.filter(b => {
+    if (b.status !== 'hold') return false;
+    if (!b.holdExpires) return false;
+    return b.holdExpires < TODAY_STR;
+  });
+}
+function daysOnHold(b) {
+  const created = new Date(b.createdAt).toISOString().slice(0,10);
+  const ms = TODAY - new Date(created+'T00:00:00');
+  return Math.floor(ms / (24*60*60*1000));
+}
+function daysPastExpiration(b) {
+  if (!b.holdExpires) return 0;
+  const ms = TODAY - new Date(b.holdExpires+'T00:00:00');
+  return Math.floor(ms / (24*60*60*1000));
+}
+
+// ============= RENDERERS =============
+function renderCeiling(cap) {
+  $('ceilingYear').textContent = cap.year;
+  const total = cap.totals.maxWeekendRevenue + cap.totals.maxWeeknightRevenue;
+  $('ceilingTotal').textContent = fmtMoneyWhole(total);
+  $('ceilingTotalSub').textContent = (cap.totals.availWeekendDays + cap.totals.availWeeknightSlots).toLocaleString() + ' available slots remaining';
+  $('ceilingWeekend').textContent = fmtMoneyWhole(cap.totals.maxWeekendRevenue);
+  $('ceilingWeekendSub').textContent = cap.totals.availWeekendDays + ' available weekend days × $675';
+  $('ceilingWeeknight').textContent = fmtMoneyWhole(cap.totals.maxWeeknightRevenue);
+  $('ceilingWeeknightSub').textContent = cap.totals.availWeeknightSlots + ' weeknights × $260';
+}
+
+function renderScenarios(cap) {
+  const ceiling = cap.totals.maxWeekendRevenue + cap.totals.maxWeeknightRevenue;
+  const eim = cap.totals.eimBookedRevenue;
+  const userBooked = cap.totals.lockedRevenue + cap.totals.holdRevenue;
+  const baseline = eim + userBooked;
+  const scenarios = [{id:'Low',pct:0.25,el:{tot:'scenLow',brk:'scenLowBreak'}},{id:'Mid',pct:0.50,el:{tot:'scenMid',brk:'scenMidBreak'}},{id:'High',pct:0.75,el:{tot:'scenHigh',brk:'scenHighBreak'}}];
+  scenarios.forEach(s => {
+    const newRev = ceiling * s.pct;
+    $(s.el.tot).textContent = fmtMoneyWhole(baseline + newRev);
+    $(s.el.brk).innerHTML = 'EIM booked: <strong>'+fmtMoneyWhole(eim)+'</strong><br>Tenant bookings: <strong>'+fmtMoneyWhole(userBooked)+'</strong><br>+ new @ '+(s.pct*100)+'%: <strong>'+fmtMoneyWhole(newRev)+'</strong>';
+  });
+}
+
+function renderStalePanel() {
+  const stale = getStaleHolds();
+  const wrap = $('stalePanelWrap');
+  if (stale.length === 0) { wrap.innerHTML = ''; return; }
+  let html = '<div class="stale-panel">';
+  html += '<div class="stale-h"><h2>🚩 '+stale.length+' stale hold(s) — past expiration</h2></div>';
+  html += '<ul class="stale-list">';
+  stale.forEach(b => {
+    const days = daysPastExpiration(b);
+    const datesShort = b.dates.length === 1 ? b.dates[0] : (b.dates[0]+' → '+b.dates[b.dates.length-1]);
+    html += '<li class="stale-item">';
+    html += '<div class="si-info"><strong>'+escapeHtml(b.renterName)+'</strong> · '+datesShort+' · '+fmtMoneyWhole(b.rateQuoted);
+    html += '<div class="si-meta">'+days+' day(s) past hold expiration · contact: '+escapeHtml(b.contactName)+' ('+escapeHtml(b.contactInfo)+')</div></div>';
+    html += '<div class="stale-actions">';
+    html += '<button class="btn-mini" onclick="openModalForEdit(\''+b.id+'\')">Review</button>';
+    html += '<button class="btn-mini primary" onclick="quickLock(\''+b.id+'\')">Lock in</button>';
+    html += '<button class="btn-mini" onclick="quickRelease(\''+b.id+'\')">Release</button>';
+    html += '</div></li>';
+  });
+  html += '</ul></div>';
+  wrap.innerHTML = html;
+}
+
+function renderPace(cap) {
+  const container = $('paceContainer');
+  container.innerHTML = '';
+  const eimByMonth = Array.from({length:12}, () => 0);
+  getEimClasses(cap.year).forEach(c => { if (c.cancelled) return; const m = new Date(c.start+'T00:00:00').getMonth(); eimByMonth[m] += computeEimFee(c).total; });
+  const todayMonth = TODAY.getMonth();
+  cap.byMonth.forEach((m, idx) => {
+    if (cap.year === '2026' && idx < todayMonth) return;
+    const newCapTarget = m.maxRevenue * 0.50;
+    const userBooked = m.holdRevenue + m.lockedRevenue;
+    const totalTarget = newCapTarget + eimByMonth[idx];
+    const currentBooked = eimByMonth[idx] + userBooked;
+    const pct = totalTarget > 0 ? Math.min(100, (currentBooked/totalTarget)*100) : 0;
+    const gap = totalTarget - currentBooked;
+    const isCurrent = idx === todayMonth && cap.year === '2026';
+    const barClass = pct >= 100 ? 'full' : (pct >= 75 ? 'close' : '');
+    const row = document.createElement('div');
+    row.className = 'pace-row' + (isCurrent ? ' current' : '');
+    row.innerHTML = '<div class="pace-month">'+MONTHS[idx]+(isCurrent?'<span class="year-tag">now</span>':'')+'</div>'+
+      '<div class="pace-bar-wrap"><div class="pace-bar '+barClass+'" style="width:'+pct+'%;"></div><span class="pace-bar-label">'+Math.round(pct)+'% of target</span></div>'+
+      '<div class="pace-need"><strong>'+fmtMoneyK(currentBooked)+'</strong> / '+fmtMoneyK(totalTarget)+'</div>'+
+      '<div class="pace-revenue">'+(gap>0?'gap '+fmtMoneyK(gap):'✓')+'</div>';
+    container.appendChild(row);
+  });
+}
+
+function renderMix(cap) {
+  const eimWeekendRev = getEimClasses(cap.year).reduce((s,c) => { if (c.cancelled) return s; return s + computeEimFee(c).total; }, 0);
+  // Categorize user bookings by type
+  let userWeekendRev = 0, userWeeknightRev = 0;
+  bookings.forEach(b => {
+    if (!b.dates.some(d => d.startsWith(cap.year))) return;
+    const yearDates = b.dates.filter(d => d.startsWith(cap.year));
+    const ratePerDate = yearDates.length > 0 ? b.rateQuoted / yearDates.length : 0;
+    yearDates.forEach(d => {
+      const dow = new Date(d+'T00:00:00').getDay();
+      if (dow === 0 || dow === 6) userWeekendRev += ratePerDate; else userWeeknightRev += ratePerDate;
+    });
+  });
+  const weekendRev = eimWeekendRev + userWeekendRev;
+  const weeknightRev = userWeeknightRev;
+  const total = weekendRev + weeknightRev;
+  const wkPct = total > 0 ? (weekendRev/total)*100 : 0;
+  const wnPct = total > 0 ? (weeknightRev/total)*100 : 0;
+  $('mixWeekendAmt').textContent = fmtMoneyWhole(weekendRev) + ' (' + Math.round(wkPct) + '%)';
+  $('mixWeekendBar').style.width = wkPct + '%';
+  $('mixWeeknightAmt').textContent = fmtMoneyWhole(weeknightRev) + ' (' + Math.round(wnPct) + '%)';
+  $('mixWeeknightBar').style.width = Math.max(wnPct, 1) + '%';
+  const potentialWN = cap.totals.maxWeeknightRevenue * 0.5;
+  $('mixSummary').innerHTML = '<strong>'+(weeknightRev === 0 ? 'Right now: 100% weekend revenue. ' : Math.round(wnPct)+'% weeknight, growing. ')+'</strong>'+
+    'At 50% utilization, weeknights could add <strong>'+fmtMoneyWhole(potentialWN)+'</strong> for the rest of '+cap.year+'.';
+}
+
+function renderBestMonths(cap) {
+  const container = $('bestMonths');
+  const todayMonth = TODAY.getMonth();
+  const ranked = cap.byMonth.map((m,idx) => ({idx,m})).filter(x => { if (cap.year==='2026' && x.idx<todayMonth) return false; return x.m.maxRevenue>0; }).sort((a,b) => b.m.maxRevenue - a.m.maxRevenue);
+  container.innerHTML = ranked.slice(0,8).map((x, rank) => {
+    return '<div class="best-card '+(rank===0?'top':'')+'"><div class="best-month">'+(rank===0?'🥇 ':'')+MONTHS_FULL[x.idx]+'</div>'+
+      '<div class="best-meta">'+x.m.availWeekend+' weekend · '+x.m.availWeeknight+' weeknights</div>'+
+      '<div class="best-potential">'+fmtMoneyK(x.m.maxRevenue)+'</div><div class="best-meta">max potential</div></div>';
+  }).join('');
+}
+
+function renderCalendar(cap) {
+  const grid = $('calMonthGrid');
+  grid.innerHTML = '';
+  const dayLabels = ['S','M','T','W','T','F','S'];
+  for (let monthIdx=0; monthIdx<12; monthIdx++) {
+    const monthDays = cap.days.filter(d => d.month === monthIdx);
+    if (monthDays.length === 0) continue;
+    const monthRev = cap.byMonth[monthIdx].maxRevenue;
+    const firstDow = new Date(parseInt(cap.year,10), monthIdx, 1).getDay();
+    let html = '<div class="cal-month">';
+    html += '<div class="cal-month-h"><div class="cal-month-name">'+MONTHS_FULL[monthIdx]+'</div>';
+    html += '<div class="cal-month-rev">'+(monthRev>0?fmtMoneyK(monthRev)+' max':'—')+'</div></div>';
+    html += '<div class="cal-weekdays">'+dayLabels.map(l=>'<div>'+l+'</div>').join('')+'</div>';
+    html += '<div class="cal-days">';
+    for (let i=0; i<firstDow; i++) html += '<div class="cal-day empty"></div>';
+    monthDays.forEach(d => {
+      const dnum = new Date(d.date+'T00:00:00').getDate();
+      let cls = 'cal-day ';
+      let tip = d.label;
+      if (d.status.includes('past')) cls += 'past ';
+      if (d.status.includes('hold')) cls += 'hold';
+      else if (d.status.includes('locked')) cls += 'locked';
+      else if (d.status.includes('eim')) cls += 'eim';
+      else if (d.status.includes('holiday-weekend')) cls += 'holiday-weekend';
+      else if (d.status.includes('holiday')) cls += 'holiday';
+      else if (d.status.includes('weekend')) cls += 'weekend';
+      else cls += 'weekday';
+      if (d.date === TODAY_STR) cls += ' today';
+      if (selectedDates.has(d.date)) cls += ' selected';
+      tip += ' · ' + d.date;
+      html += '<div class="'+cls+'" data-date="'+d.date+'"><span>'+dnum+'</span><span class="tip">'+escapeHtml(tip)+'</span></div>';
+    });
+    html += '</div></div>';
+    grid.innerHTML += html;
+  }
+  // Wire click handlers
+  grid.querySelectorAll('.cal-day[data-date]').forEach(el => {
+    el.addEventListener('click', () => handleDayClick(el.dataset.date));
+  });
+}
+
+function handleDayClick(dateStr) {
+  const dayObj = currentCap.days.find(d => d.date === dateStr);
+  if (!dayObj || dayObj.isPastDay) return;
+  // If it's an existing booking, open it for edit
+  if (dayObj.booking) {
+    openModalForEdit(dayObj.booking.id);
+    return;
+  }
+  // EIM, holiday, holiday-weekend → ignore click
+  if (dayObj.status.includes('eim') || dayObj.status.includes('holiday')) return;
+  // Otherwise toggle selection
+  if (selectedDates.has(dateStr)) selectedDates.delete(dateStr); else selectedDates.add(dateStr);
+  updateSelectionBar();
+  renderCalendar(currentCap);
+}
+
+function updateSelectionBar() {
+  const bar = $('selectionBar');
+  if (selectedDates.size === 0) { bar.classList.remove('shown'); return; }
+  bar.classList.add('shown');
+  let total = 0;
+  selectedDates.forEach(d => {
+    const dow = new Date(d+'T00:00:00').getDay();
+    total += (dow === 0 || dow === 6) ? FEE_PER_DAY : WEEKNIGHT_MAX_REVENUE;
+  });
+  $('selCount').textContent = selectedDates.size;
+  $('selRate').textContent = fmtMoneyWhole(total);
+}
+
+$('clearSelBtn').addEventListener('click', () => { selectedDates.clear(); updateSelectionBar(); renderCalendar(currentCap); });
+$('newBookingBtn').addEventListener('click', () => openModalForNew());
+
+// ============= MODAL =============
+function openModalForNew() {
+  if (selectedDates.size === 0) { showError('Select at least one available day on the calendar first.'); return; }
+  editingBookingId = null;
+  editingStatus = 'hold';
+  $('modalTitle').textContent = 'New booking';
+  $('modalSub').textContent = 'Fill in details and choose hold or locked';
+  populateModalDates(Array.from(selectedDates).sort());
+  // Compute suggested rate
+  let suggested = 0;
+  selectedDates.forEach(d => { const dow = new Date(d+'T00:00:00').getDay(); suggested += (dow===0||dow===6)?FEE_PER_DAY:WEEKNIGHT_MAX_REVENUE; });
+  $('fRate').value = suggested;
+  $('fRenterName').value = '';
+  $('fCompany').value = '';
+  $('fContactName').value = '';
+  $('fContactInfo').value = '';
+  $('fNotes').value = '';
+  $('fHoldExpires').value = '';
+  setStatusToggle('hold');
+  $('deleteBtn').style.display = 'none';
+  $('auditTrail').innerHTML = '';
+  $('modalBackdrop').classList.add('shown');
+  setTimeout(() => $('fRenterName').focus(), 100);
+}
+
+function openModalForEdit(id) {
+  const b = bookings.find(x => x.id === id);
+  if (!b) return;
+  editingBookingId = id;
+  editingStatus = b.status;
+  $('modalTitle').textContent = b.status === 'locked' ? 'Locked booking' : 'Booking on hold';
+  $('modalSub').textContent = 'Edit details, change status, or delete';
+  populateModalDates(b.dates);
+  setStatusToggle(b.status);
+  $('fRenterName').value = b.renterName || '';
+  $('fCompany').value = b.company || '';
+  $('fContactName').value = b.contactName || '';
+  $('fContactInfo').value = b.contactInfo || '';
+  $('fRate').value = b.rateQuoted;
+  $('fHoldExpires').value = b.holdExpires || '';
+  $('fNotes').value = b.notes || '';
+  $('deleteBtn').style.display = '';
+  // Audit
+  let audit = '<strong>Created</strong> '+formatTimestamp(b.createdAt)+' by '+escapeHtml(b.createdBy);
+  if (b.updatedAt && b.updatedAt !== b.createdAt) audit += '<br><strong>Last updated</strong> '+formatTimestamp(b.updatedAt)+' by '+escapeHtml(b.updatedBy);
+  if (b.lockedAt) audit += '<br><strong>Locked in</strong> '+formatTimestamp(b.lockedAt)+' by '+escapeHtml(b.lockedBy);
+  if (b.status === 'hold') audit += '<br><strong>Days on hold:</strong> '+daysOnHold(b);
+  $('auditTrail').innerHTML = audit;
+  $('modalBackdrop').classList.add('shown');
+}
+
+function populateModalDates(dates) {
+  if (dates.length === 1) $('modalDates').innerHTML = '<strong>'+dates[0]+'</strong> ('+dayName(dates[0])+')';
+  else $('modalDates').innerHTML = '<strong>'+dates.length+' days</strong>: '+dates.join(', ');
+}
+function dayName(d) { return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(d+'T00:00:00').getDay()]; }
+function formatTimestamp(iso) { try { return new Date(iso).toLocaleString(); } catch { return iso; } }
+
+function setStatusToggle(status) {
+  editingStatus = status;
+  $('statusHold').classList.toggle('active', status === 'hold');
+  $('statusLocked').classList.toggle('active', status === 'locked');
+  $('holdExpiresField').style.display = status === 'hold' ? '' : 'none';
+}
+$('statusHold').addEventListener('click', () => setStatusToggle('hold'));
+$('statusLocked').addEventListener('click', () => setStatusToggle('locked'));
+
+function closeModal() { $('modalBackdrop').classList.remove('shown'); editingBookingId = null; }
+$('cancelBtn').addEventListener('click', closeModal);
+$('modalBackdrop').addEventListener('click', (e) => { if (e.target === $('modalBackdrop')) closeModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+$('saveBtn').addEventListener('click', async () => {
+  const dates = editingBookingId ? bookings.find(b => b.id === editingBookingId).dates : Array.from(selectedDates).sort();
+  const slotType = computeSlotType(dates);
+  const payload = {
+    dates,
+    slotType,
+    renterName: $('fRenterName').value.trim(),
+    contactName: $('fContactName').value.trim(),
+    company: $('fCompany').value.trim(),
+    contactInfo: $('fContactInfo').value.trim(),
+    rateQuoted: parseFloat($('fRate').value) || 0,
+    status: editingStatus,
+    holdExpires: editingStatus === 'hold' ? ($('fHoldExpires').value || null) : null,
+    notes: $('fNotes').value.trim()
+  };
+  if (editingBookingId) payload.id = editingBookingId;
+  try {
+    $('saveBtn').disabled = true; $('saveBtn').textContent = 'Saving…';
+    await saveBooking(payload);
+    await fetchBookings();
+    selectedDates.clear();
+    closeModal();
+    renderAll();
+  } catch (e) { showError('Save failed: ' + e.message); }
+  finally { $('saveBtn').disabled = false; $('saveBtn').textContent = 'Save'; }
+});
+
+$('deleteBtn').addEventListener('click', async () => {
+  if (!editingBookingId) return;
+  if (!confirm('Delete this booking? This cannot be undone.')) return;
+  try {
+    await deleteBooking(editingBookingId);
+    await fetchBookings();
+    closeModal();
+    renderAll();
+  } catch (e) { showError('Delete failed: ' + e.message); }
+});
+
+function computeSlotType(dates) {
+  let hasWeekend = false, hasWeeknight = false;
+  dates.forEach(d => { const dow = new Date(d+'T00:00:00').getDay(); if (dow===0||dow===6) hasWeekend = true; else hasWeeknight = true; });
+  if (hasWeekend && hasWeeknight) return 'mixed';
+  if (hasWeekend) return 'weekend';
+  return 'weeknight';
+}
+
+// Quick actions for stale holds
+window.quickLock = async (id) => {
+  const b = bookings.find(x => x.id === id); if (!b) return;
+  try { await saveBooking({ ...b, status: 'locked', holdExpires: null }); await fetchBookings(); renderAll(); }
+  catch (e) { showError('Lock failed: ' + e.message); }
+};
+window.quickRelease = async (id) => {
+  if (!confirm('Release this hold and delete the booking?')) return;
+  try { await deleteBooking(id); await fetchBookings(); renderAll(); }
+  catch (e) { showError('Release failed: ' + e.message); }
+};
+window.openModalForEdit = openModalForEdit;
+
+// ============= BOOKINGS LIST VIEW =============
+function renderBookingsList() {
+  const list = bookings.slice().sort((a,b) => a.dates[0].localeCompare(b.dates[0]));
+  $('bookingsCount').textContent = list.length;
+  const container = $('bookingsList');
+  if (list.length === 0) { container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-light);">No bookings yet. Click an available day on the calendar to create your first booking.</div>'; return; }
+  container.innerHTML = list.map(b => {
+    const dates = b.dates.length === 1 ? b.dates[0] : (b.dates[0]+' → '+b.dates[b.dates.length-1]+' ('+b.dates.length+'d)');
+    return '<div class="booking-row '+b.status+'" onclick="openModalForEdit(\''+b.id+'\')">'+
+      '<div class="booking-row-h"><div><span class="br-renter">'+escapeHtml(b.renterName)+'</span>'+
+      '<span class="br-status '+b.status+'">'+(b.status==='hold'?'On hold':'Locked in')+'</span></div>'+
+      '<div class="br-rate">'+fmtMoneyWhole(b.rateQuoted)+'</div></div>'+
+      '<div class="br-meta">'+dates+' · '+escapeHtml(b.contactName)+(b.company?' / '+escapeHtml(b.company):'')+' · '+escapeHtml(b.contactInfo)+
+      (b.status==='hold' && b.holdExpires ? ' · expires '+b.holdExpires+(b.holdExpires<TODAY_STR?' 🚩':'') : '')+
+      '</div></div>';
+  }).join('');
+}
+
+// ============= EIM VIEW =============
+function renderEim() {
+  const list = getEimClasses(currentYear);
+  $('revYearLabel').textContent = currentYear;
+  const completed = list.filter(c => isPast(c) && !c.cancelled && c.part !== null);
+  const ytd = completed.reduce((s,c) => s + computeEimFee(c).total, 0);
+  const ytdBonus = completed.reduce((s,c) => s + computeEimFee(c).bonus, 0);
+  $('revYTD').textContent = fmtMoneyWhole(ytd);
+  $('revYTDSub').textContent = completed.length+' completed'+(ytdBonus>0?' · incl '+fmtMoneyWhole(ytdBonus)+' bonus':'');
+  const upcomingClasses = list.filter(c => isUpcoming(c));
+  const bookedBase = upcomingClasses.reduce((s,c) => s + (c.days*FEE_PER_DAY), 0);
+  $('revBooked').textContent = fmtMoneyWhole(bookedBase);
+  $('revBookedSub').textContent = upcomingClasses.length+' classes scheduled';
+  $('revForecast').textContent = fmtMoneyWhole(ytd+bookedBase);
+  const bonusEarned = completed.filter(c => computeEimFee(c).qualified).length;
+  $('revBonus').textContent = bonusEarned;
+  $('revBonusSub').textContent = bonusEarned===0?'none yet':bonusEarned+' × $650 = '+fmtMoneyWhole(bonusEarned*BONUS_AMOUNT);
+  const completedWithPart = completed.filter(c => c.part > 0);
+  const totalParticipants = completedWithPart.reduce((s,c) => s+c.part, 0);
+  const totalSnack = list.reduce((s,c) => s+(c.snack||0), 0);
+  $('kpiTotal').textContent = list.length;
+  $('kpiTotalSub').textContent = completed.length+' completed'+(currentYear==='2026'?' YTD':'');
+  $('kpiPart').textContent = totalParticipants;
+  $('kpiPartSub').textContent = completedWithPart.length+' classes counted';
+  $('kpiSnack').textContent = '$'+totalSnack.toFixed(2);
+  const sentCount = list.filter(c => c.sent==='yes').length;
+  $('kpiSnackSub').textContent = sentCount+' reimbursements sent';
+  $('kpiAvg').textContent = completedWithPart.length ? (totalParticipants/completedWithPart.length).toFixed(1) : '—';
+}
+
+function escapeHtml(str) { return String(str || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+
+// ============= MAIN =============
+let currentCap = null;
+function renderAll() {
+  currentCap = buildCapacity(currentYear);
+  renderCeiling(currentCap);
+  renderStalePanel();
+  renderScenarios(currentCap);
+  renderPace(currentCap);
+  renderMix(currentCap);
+  renderBestMonths(currentCap);
+  renderCalendar(currentCap);
+  renderBookingsList();
+  renderEim();
+  $('stamp').textContent = bookings.length+' tenant booking(s) · '+getEimClasses('2026').length+' EIM classes scheduled in 2026';
+}
+
+document.querySelectorAll('.toggle-btn[data-tenant]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.toggle-btn[data-tenant]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentTenant = btn.dataset.tenant;
+    $('capacityView').classList.toggle('hidden', currentTenant !== 'capacity');
+    $('bookingsView').classList.toggle('hidden', currentTenant !== 'bookings');
+    $('eimView').classList.toggle('hidden', currentTenant !== 'eim');
+  });
+});
+document.querySelectorAll('.toggle-btn[data-year]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.toggle-btn[data-year]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentYear = btn.dataset.year;
+    selectedDates.clear();
+    updateSelectionBar();
+    renderAll();
+  });
+});
+
+(async function init() {
+  if (!(await checkAuth())) return;
+  await fetchBookings();
+  renderAll();
+})();
+</script>
+</body>
+</html>
